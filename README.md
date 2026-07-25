@@ -4,6 +4,8 @@ PIX-7 Forge is a deterministic component generator for the Pixel Records
 interface system. It turns the PIX-7 visual language into reusable production
 assets instead of one-off graphics.
 
+Live page: [tomislavrupic.github.io/PIX-7-Forge](https://tomislavrupic.github.io/PIX-7-Forge/)
+
 ## First release
 
 The initial generator supports:
@@ -48,6 +50,7 @@ Validation:
 ```bash
 npm run lint
 npm test
+npm run pages:build
 ```
 
 The application uses Next.js/React through the Cloudflare-compatible vinext
