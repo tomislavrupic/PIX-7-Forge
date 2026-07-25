@@ -2,7 +2,7 @@
 
 import { useCallback, useMemo, useState } from "react";
 
-type Family = "panel" | "button" | "slider" | "meter" | "badge" | "hud";
+type Family = "panel" | "button" | "slider" | "meter" | "badge" | "hud" | "reticle" | "orbit" | "loader" | "waveform" | "burst" | "pattern" | "divider" | "liquid";
 type State = "idle" | "hover" | "active" | "disabled" | "error";
 type Accent = "lime" | "cyan" | "purple" | "amber" | "red";
 type Structure = "flat" | "framed" | "segmented" | "modular" | "industrial";
@@ -23,6 +23,7 @@ type Recipe = {
   cornerCut: number;
   borderWidth: number;
   segments: number;
+  variant: number;
 };
 
 const families: { id: Family; label: string; code: string }[] = [
@@ -32,6 +33,14 @@ const families: { id: Family; label: string; code: string }[] = [
   { id: "meter", label: "Meter", code: "MTR" },
   { id: "badge", label: "Badge", code: "BDG" },
   { id: "hud", label: "HUD Marker", code: "HUD" },
+  { id: "reticle", label: "Reticle", code: "RTL" },
+  { id: "orbit", label: "Orbit", code: "ORB" },
+  { id: "loader", label: "Loader", code: "LDR" },
+  { id: "waveform", label: "Waveform", code: "WAV" },
+  { id: "burst", label: "Signal Burst", code: "BST" },
+  { id: "pattern", label: "Pattern", code: "PTN" },
+  { id: "divider", label: "Data Divider", code: "DVD" },
+  { id: "liquid", label: "Liquid Signal", code: "LIQ" },
 ];
 
 const roles = ["Primary", "Secondary", "Warning", "Data", "Navigation", "Playback"];
@@ -82,6 +91,7 @@ function recipeFrom(seedText: string, family: Family): Recipe {
     cornerCut: Math.round(2 + random() * 11),
     borderWidth: random() > 0.82 ? 2 : 1,
     segments: Math.round(4 + random() * 12),
+    variant: Math.floor(random() * 6) + 1,
   };
 }
 
@@ -112,8 +122,9 @@ function ComponentShape({ recipe, scale = 1, state }: { recipe: Recipe; scale?: 
     "--density": recipe.density / 100,
     "--damage": recipe.damage / 100,
     "--scale": scale,
+    "--variant": recipe.variant,
   } as React.CSSProperties;
-  const common = `generated generated-${recipe.family} structure-${recipe.structure} state-${currentState} anim-${recipe.animation}`;
+  const common = `generated generated-${recipe.family} variant-${recipe.variant} structure-${recipe.structure} state-${currentState} anim-${recipe.animation}`;
 
   if (recipe.family === "button") {
     return (
@@ -156,6 +167,72 @@ function ComponentShape({ recipe, scale = 1, state }: { recipe: Recipe; scale?: 
         <span className="hud-cross h" /><span className="hud-cross v" />
         <span className="hud-target" />
         <b>TRK–071</b><small>LOCK 98.4%</small>
+      </div>
+    );
+  }
+  if (recipe.family === "reticle") {
+    return (
+      <div className={common} style={style}>
+        <span className="primitive-core" />
+        {Array.from({ length: 4 }).map((_, index) => <i key={index} style={{ "--i": index } as React.CSSProperties} />)}
+        <b>ACQ {String(recipe.variant).padStart(2, "0")}</b><small>VECTOR LOCK</small>
+      </div>
+    );
+  }
+  if (recipe.family === "orbit") {
+    return (
+      <div className={common} style={style}>
+        {Array.from({ length: 3 }).map((_, index) => <span key={index} className={`orbit-ring orbit-${index}`}><i /></span>)}
+        <span className="primitive-core" /><b>ORBIT / {recipe.segments}</b>
+      </div>
+    );
+  }
+  if (recipe.family === "loader") {
+    return (
+      <div className={common} style={style}>
+        <div className="radial-elements">{Array.from({ length: recipe.segments }).map((_, index) => <i key={index} style={{ "--i": index, "--count": recipe.segments } as React.CSSProperties} />)}</div>
+        <strong>{recipe.variant % 2 ? "72" : "SYNC"}</strong><small>PROCESS {recipe.variant}/6</small>
+      </div>
+    );
+  }
+  if (recipe.family === "waveform") {
+    return (
+      <div className={common} style={style}>
+        <div className="wave-bars">{Array.from({ length: 24 }).map((_, index) => <i key={index} style={{ "--i": index } as React.CSSProperties} />)}</div>
+        <span>CH.{recipe.variant} / SIGNAL MEMORY</span>
+      </div>
+    );
+  }
+  if (recipe.family === "burst") {
+    return (
+      <div className={common} style={style}>
+        <div className="radial-elements">{Array.from({ length: recipe.segments }).map((_, index) => <i key={index} style={{ "--i": index, "--count": recipe.segments } as React.CSSProperties} />)}</div>
+        <span className="primitive-core" /><b>IMPULSE</b>
+      </div>
+    );
+  }
+  if (recipe.family === "pattern") {
+    return (
+      <div className={common} style={style}>
+        {Array.from({ length: 48 }).map((_, index) => <i key={index} style={{ "--i": index } as React.CSSProperties} />)}
+        <b>FIELD {recipe.variant}.0</b>
+      </div>
+    );
+  }
+  if (recipe.family === "divider") {
+    return (
+      <div className={common} style={style}>
+        <b>PX–0{recipe.variant}</b><span className="divider-line" />
+        {Array.from({ length: Math.min(8, recipe.segments) }).map((_, index) => <i key={index} />)}
+        <span className="divider-line end" /><small>DATA FLOW</small>
+      </div>
+    );
+  }
+  if (recipe.family === "liquid") {
+    return (
+      <div className={common} style={style}>
+        {Array.from({ length: 5 }).map((_, index) => <i key={index} style={{ "--i": index } as React.CSSProperties} />)}
+        <b>FLUID SIGNAL / {recipe.variant}</b>
       </div>
     );
   }
@@ -267,6 +344,7 @@ export default function Home() {
             {(["density", "pixelation", "technicality", "detail", "damage"] as const).map((key) => <TraitSlider key={key} label={key.toUpperCase()} value={recipe[key]} locked={locks.has(key)} onChange={(value) => update(key, value)} onLock={() => toggleLock(key)} />)}
             <div className="chip-block"><label>STRUCTURE</label><div>{structures.map((item) => <button key={item} className={recipe.structure === item ? "active" : ""} onClick={() => update("structure", item)}>{item}</button>)}</div></div>
             <div className="chip-block accent-block"><label>ACCENT</label><div>{accents.map((item) => <button aria-label={item} key={item} className={recipe.accent === item ? "active" : ""} style={{ "--chip": accentHex[item] } as React.CSSProperties} onClick={() => update("accent", item)} />)}</div></div>
+            <div className="chip-block variant-block"><label>FORM VARIANT</label><div>{[1, 2, 3, 4, 5, 6].map((item) => <button key={item} className={recipe.variant === item ? "active" : ""} onClick={() => update("variant", item)}>{String(item).padStart(2, "0")}</button>)}</div></div>
             <div className="select-row compact"><label>ANIMATION<select value={recipe.animation} onChange={(e) => update("animation", e.target.value as AnimationMode)}>{animations.map((item) => <option key={item}>{item}</option>)}</select></label></div>
           </section>
         </aside>
@@ -303,6 +381,7 @@ export default function Home() {
             <label className="seed-input">STABLE SEED<input value={seed} onChange={(e) => setSeed(e.target.value.toUpperCase())} onBlur={() => applyGenerated(seed, family, "reroll")} /></label>
             <div className="lineage-actions"><button className="reroll" onClick={() => applyGenerated(makeSeed(family), family, "reroll")}><span>⟳</span> REROLL<small>KEEP LOCKED TRAITS</small></button><button onClick={() => applyGenerated(`${seed}-M${Date.now().toString().slice(-3)}`, family, "mutate")}><span>⌁</span> MUTATE<small>BRANCH CURRENT DNA</small></button></div>
             <div className="precision-actions"><button onClick={() => update("detail", Math.max(0, recipe.detail - 12))}>− REDUCE</button><button onClick={() => update("density", Math.min(100, recipe.density + 12))}>+ DENSITY</button><button className="more-pix" onClick={() => setRecipe((current) => ({ ...current, technicality: Math.max(78, current.technicality), damage: Math.min(22, current.damage), detail: Math.max(62, current.detail), cornerCut: Math.max(5, current.cornerCut) }))}>MAKE MORE PIX–7</button></div>
+            <div className="variant-actions"><button onClick={() => update("variant", recipe.variant === 1 ? 6 : recipe.variant - 1)}>← FORM</button><span>{familyCode(family)} / {String(recipe.variant).padStart(2, "0")}</span><button onClick={() => update("variant", recipe.variant === 6 ? 1 : recipe.variant + 1)}>FORM →</button></div>
           </section>
 
           <section className="recipe-section">
