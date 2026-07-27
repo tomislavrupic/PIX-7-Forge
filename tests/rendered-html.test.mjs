@@ -28,7 +28,9 @@ test("server-renders PIX-7 Forge product shell", async () => {
   assert.match(html, /DESIGN DNA/);
   assert.match(html, /SEED &amp; LINEAGE/);
   assert.match(html, /EXPORT/);
-  assert.match(html, /51(?:<!-- -->)? SYSTEMS/);
+  assert.match(html, /55(?:<!-- -->)? SYSTEMS/);
+  assert.match(html, /VIDEO LOOP/);
+  assert.match(html, /HYPERFRAMES/);
   for (const effect of requiredEffects) assert.match(html, new RegExp(effect));
   assert.doesNotMatch(html, /codex-preview|react-loading-skeleton|Your site is taking shape/);
 });

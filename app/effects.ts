@@ -36,6 +36,10 @@ export const nekoEffects = [
   { id: "perimeter-type", label: "Perimeter Type", code: "PRT", category: "type", mode: "orbit-text", source: "Text Path", description: "Circular warnings and device inscriptions." },
   { id: "character-broadcast", label: "Character Broadcast", code: "CBR", category: "type", mode: "type-wave", source: "Character Waves", description: "Music-reactive language transmission." },
   { id: "ascii-overload", label: "ASCII Overload", code: "AOV", category: "type", mode: "ascii", source: "ASCII Flame", description: "Generator heat and digital combustion." },
+  { id: "patrol-hud", label: "Patrol HUD", code: "PHD", category: "collection", mode: "patrol-hud", source: "HyperFrames Camcorder HUD", description: "Seekable patrol acquisition, coordinates and evidence lock." },
+  { id: "neko-broadcast", label: "Neko Broadcast", code: "NKB", category: "collection", mode: "neko-broadcast", source: "HyperFrames News Ticker", description: "District alerts, emergency crawls and live signal reports." },
+  { id: "packet-assembly", label: "Packet Assembly", code: "PKA", category: "collection", mode: "packet-assembly", source: "HyperFrames Particle Assemble", description: "Archive fragments converge into a deterministic memory packet." },
+  { id: "signal-fault", label: "Signal Fault", code: "SGF", category: "collection", mode: "signal-fault", source: "HyperFrames Glitch", description: "Chromatic tearing and packet damage on a frame-accurate loop." },
 ] as const;
 
 export type NekoEffectId = (typeof nekoEffects)[number]["id"];

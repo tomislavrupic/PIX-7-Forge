@@ -8,5 +8,5 @@ export const requiredEffects = [
   "Surveillance Decode", "Terminal Recovery", "Corrupted Hologram", "Signal Impact",
   "Identity Mask", "Patrol Searchlight", "Damaged Signage", "Terminal Decode",
   "Intercepted Message", "Neon Failure", "Perimeter Type", "Character Broadcast",
-  "ASCII Overload",
+  "ASCII Overload", "Patrol HUD", "Neko Broadcast", "Packet Assembly", "Signal Fault",
 ];

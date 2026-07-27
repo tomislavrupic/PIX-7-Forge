@@ -10,8 +10,8 @@ test("contains the complete Neko City effect catalogue", async () => {
   const ids = [...source.matchAll(/id: "([^"]+)"/g)].map((match) => match[1]);
   const modes = [...new Set([...source.matchAll(/mode: "([^"]+)"/g)].map((match) => match[1]))];
 
-  assert.equal(labels.length, 37);
-  assert.equal(new Set(ids).size, 37);
+  assert.equal(labels.length, 41);
+  assert.equal(new Set(ids).size, 41);
   assert.deepEqual(labels, requiredEffects);
   for (const mode of modes) {
     assert.match(renderer, new RegExp(`effect\\.mode === "${mode}"`), `missing renderer for ${mode}`);
@@ -21,4 +21,5 @@ test("contains the complete Neko City effect catalogue", async () => {
   assert.match(source, /category: "signal"/);
   assert.match(source, /category: "archive"/);
   assert.match(source, /category: "type"/);
+  assert.match(source, /category: "collection"/);
 });

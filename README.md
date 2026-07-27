@@ -8,11 +8,13 @@ Live page: [tomislavrupic.github.io/PIX-7-Forge](https://tomislavrupic.github.io
 
 ## Effect catalogue
 
-The generator includes 51 systems:
+The generator includes 55 systems:
 
 - 14 foundational interface and motion families
 - 37 Neko City effects across city, security, signal, broadcast, archive,
   and typography categories
+- four seekable HyperFrames video-loop collections: Patrol HUD, Neko
+  Broadcast, Packet Assembly, and Signal Fault
 - six deterministic form variants for every system
 - catalogue search and category filtering
 
@@ -30,6 +32,8 @@ security boundaries, damaged typography, and broadcast displays.
 - JSON component recipe
 - CSS tokens
 - TypeScript/React recipe module
+- standalone HyperFrames composition with duration, frame rate, alpha,
+  deterministic seed data, and a registered seekable timeline
 
 ## PIX-7 constraints
 

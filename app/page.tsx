@@ -1,7 +1,8 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { nekoEffects, type EffectCategory, type NekoEffectId } from "./effects";
+import { buildHyperFramesComposition, type LoopCollection } from "./hyperframes";
 
 type CoreFamily = "panel" | "button" | "slider" | "meter" | "badge" | "hud" | "reticle" | "orbit" | "loader" | "waveform" | "burst" | "pattern" | "divider" | "liquid";
 type Family = CoreFamily | NekoEffectId;
@@ -46,7 +47,13 @@ const coreFamilies: { id: CoreFamily; label: string; code: string; category: "co
 ];
 const families = [...coreFamilies, ...nekoEffects];
 type CatalogueCategory = "all" | "core" | EffectCategory;
-const catalogueCategories: CatalogueCategory[] = ["all", "core", "city", "security", "signal", "broadcast", "archive", "type"];
+const catalogueCategories: CatalogueCategory[] = ["all", "collection", "core", "city", "security", "signal", "broadcast", "archive", "type"];
+const loopCollections: { id: LoopCollection; family: NekoEffectId; label: string }[] = [
+  { id: "patrol-hud", family: "patrol-hud", label: "PATROL HUD" },
+  { id: "neko-broadcast", family: "neko-broadcast", label: "NEKO BROADCAST" },
+  { id: "packet-assembly", family: "packet-assembly", label: "PACKET ASSEMBLY" },
+  { id: "signal-fault", family: "signal-fault", label: "SIGNAL FAULT" },
+];
 
 const roles = ["Primary", "Secondary", "Warning", "Data", "Navigation", "Playback"];
 const structures: Structure[] = ["flat", "framed", "segmented", "modular", "industrial"];
@@ -142,6 +149,18 @@ function NekoEffectShape({ effect, recipe, common, style }: {
     </div>
   );
 
+  if (effect.mode === "patrol-hud") {
+    return frame(<div className="hf-patrol"><div className="hf-scope"><i /><i /><i /><i /><b /></div><strong>PX–7 / TARGET ACQUIRED</strong><small>X 071.248 · Y 611.763</small></div>);
+  }
+  if (effect.mode === "neko-broadcast") {
+    return frame(<div className="hf-broadcast"><header><span>NEKO CITY // LIVE</span><b>07</b></header><main><small>DISTRICT SIGNAL</small><strong>RESTORED</strong></main><footer><span>▲ PATROL CHANNEL OPEN</span><i /></footer></div>);
+  }
+  if (effect.mode === "packet-assembly") {
+    return frame(<div className="hf-assembly"><div className="hf-packet-particles">{marks.map((_, index) => <i key={index} style={markStyle(index)} />)}</div><div className="hf-packet"><span>07</span><strong>MEMORY<br />PACKET</strong></div><small>ASSEMBLY 98.4%</small></div>);
+  }
+  if (effect.mode === "signal-fault") {
+    return frame(<div className="hf-fault"><div /><strong data-label="SIGNAL FAULT">SIGNAL FAULT</strong><span>CHROMA DESYNC / PACKET DAMAGE</span><i /><i /></div>);
+  }
   if (effect.mode === "led") {
     return frame(<div className="fx-led"><span>NEKO</span><i>●</i><span>CITY 07</span></div>);
   }
@@ -346,6 +365,26 @@ export default function Home() {
   const [saved, setSaved] = useState(false);
   const [catalogueCategory, setCatalogueCategory] = useState<CatalogueCategory>("all");
   const [catalogueSearch, setCatalogueSearch] = useState("");
+  const [exportMode, setExportMode] = useState<"asset" | "video">("asset");
+  const [loopCollection, setLoopCollection] = useState<LoopCollection>("patrol-hud");
+  const [loopDuration, setLoopDuration] = useState(4);
+  const [loopFps, setLoopFps] = useState(60);
+  const [loopTransparent, setLoopTransparent] = useState(false);
+  const [loopProgress, setLoopProgress] = useState(0);
+  const [loopPlaying, setLoopPlaying] = useState(true);
+  const loopStartedAt = useRef(0);
+
+  useEffect(() => {
+    if (!loopPlaying || exportMode !== "video") return;
+    let frame = 0;
+    const animate = (time: number) => {
+      if (!loopStartedAt.current) loopStartedAt.current = time;
+      setLoopProgress(((time - loopStartedAt.current) / (loopDuration * 1000)) % 1);
+      frame = requestAnimationFrame(animate);
+    };
+    frame = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(frame);
+  }, [exportMode, loopDuration, loopPlaying]);
 
   const applyGenerated = useCallback((newSeed: string, newFamily: Family, mode: "reroll" | "mutate") => {
     const generated = recipeFrom(newSeed, newFamily);
@@ -411,6 +450,37 @@ export default function Home() {
     download(`${seed}.svg`, svg, "image/svg+xml");
   };
 
+  const selectLoopCollection = (collection: LoopCollection) => {
+    const target = loopCollections.find((item) => item.id === collection)!;
+    setLoopCollection(collection);
+    selectFamily(target.family);
+    setExportMode("video");
+    setLoopProgress(0);
+    loopStartedAt.current = 0;
+  };
+
+  const hyperFramesRecipe = useMemo(() => ({
+    seed,
+    family,
+    collection: loopCollection,
+    accent: accentHex[recipe.accent],
+    duration: loopDuration,
+    fps: loopFps,
+    width: 1080,
+    height: 1080,
+    transparent: loopTransparent,
+    density: recipe.density,
+    detail: recipe.detail,
+    damage: recipe.damage,
+    segments: recipe.segments,
+    variant: recipe.variant,
+  }), [family, loopCollection, loopDuration, loopFps, loopTransparent, recipe, seed]);
+
+  const exportHyperFrames = () => {
+    const html = buildHyperFramesComposition(hyperFramesRecipe);
+    download(`${seed}-${loopCollection}.hyperframes.html`, html, "text/html");
+  };
+
   return (
     <main className="forge-shell">
       <section className="landing-hero">
@@ -429,7 +499,7 @@ export default function Home() {
             </div>
           </div>
           <div className="landing-visual">
-            <div className="landing-scan-label"><span>LIVE SYSTEM ARRAY</span><b>03 / 51</b></div>
+            <div className="landing-scan-label"><span>LIVE SYSTEM ARRAY</span><b>03 / 55</b></div>
             <div className="landing-effects">
               {landingRecipes.map((landingRecipe, index) => <div className={`landing-effect effect-${index}`} key={landingRecipe.family}><ComponentShape recipe={landingRecipe} /></div>)}
             </div>
@@ -439,8 +509,8 @@ export default function Home() {
           </div>
         </div>
         <div className="landing-stats">
-          <div><strong>51</strong><span>GENERATIVE<br />SYSTEMS</span></div>
-          <div><strong>37</strong><span>NEKO CITY<br />EFFECTS</span></div>
+          <div><strong>55</strong><span>GENERATIVE<br />SYSTEMS</span></div>
+          <div><strong>04</strong><span>VIDEO LOOP<br />COLLECTIONS</span></div>
           <div><strong>06</strong><span>FORMS PER<br />SYSTEM</span></div>
           <div><strong>∞</strong><span>STABLE SEED<br />LINEAGES</span></div>
           <p>NO GLASS / NO GENERIC GRADIENTS / FUNCTION-FIRST MOTION</p>
@@ -482,10 +552,10 @@ export default function Home() {
         <section className="preview-zone">
           <div className="preview-toolbar">
             <div><span className="eyebrow">{activeEffect ? `NEKO CITY / ${activeEffect.category.toUpperCase()}` : "LIVE ELEMENT"}</span><h1>{(activeEffect?.label ?? family).toUpperCase()} / {recipe.role.toUpperCase()} <small>{seed}</small></h1></div>
-            <div className="view-controls"><button className={grid ? "active" : ""} onClick={() => setGrid(!grid)}># GRID</button><button>1×</button><button>2×</button><button>4×</button></div>
+            <div className="view-controls"><button className={exportMode === "asset" ? "active" : ""} onClick={() => setExportMode("asset")}>STILL</button><button className={exportMode === "video" ? "active video-tab" : "video-tab"} onClick={() => selectLoopCollection(loopCollection)}>▶ VIDEO LOOP</button><button className={grid ? "active" : ""} onClick={() => setGrid(!grid)}># GRID</button></div>
           </div>
 
-          <div className={`stage context-${context} ${grid ? "grid-on" : ""}`}>
+          <div className={`stage context-${context} ${grid ? "grid-on" : ""} ${exportMode === "video" ? "video-stage" : ""}`} style={{ "--loop-p": loopProgress, "--loop-wave": Math.sin(loopProgress * Math.PI * 2), "--loop-cycle": 0.5 - 0.5 * Math.cos(loopProgress * Math.PI * 2) } as React.CSSProperties}>
             <div className="stage-index">X 071.4<br />Y 238.0</div>
             <div className="context-chrome">
               {context !== "isolated" && <><span>{context === "echo" ? "PIXEL ECHO / SPECTRAL FIELD" : context === "zogg" ? "ZOGG / SOUND PATROL" : "PIXEL STUDIO / INSPECTOR"}</span><i /></>}
@@ -493,6 +563,21 @@ export default function Home() {
             <div className="component-mount"><ComponentShape recipe={recipe} state={previewState} /></div>
             <span className="stage-corner tl" /><span className="stage-corner tr" /><span className="stage-corner bl" /><span className="stage-corner br" />
           </div>
+
+          {exportMode === "video" && <section className="video-loop-console">
+            <div className="loop-console-head"><div><span className="eyebrow">HYPERFRAMES / SEEKABLE COMPOSITION</span><strong>VIDEO LOOP</strong></div><span className="hf-ready"><i /> FRAME READY</span></div>
+            <div className="loop-collections">{loopCollections.map((item, index) => <button key={item.id} className={loopCollection === item.id ? "active" : ""} onClick={() => selectLoopCollection(item.id)}><span>0{index + 1}</span>{item.label}</button>)}</div>
+            <div className="loop-transport">
+              <button className="transport-play" onClick={() => { setLoopPlaying(!loopPlaying); loopStartedAt.current = 0; }}>{loopPlaying ? "Ⅱ" : "▶"}</button>
+              <label><span>{(loopProgress * loopDuration).toFixed(2)}s</span><input aria-label="Loop timeline" type="range" min="0" max="1000" value={Math.round(loopProgress * 1000)} onChange={(event) => { setLoopPlaying(false); setLoopProgress(Number(event.target.value) / 1000); }} /><output>{loopDuration.toFixed(2)}s</output></label>
+            </div>
+            <div className="loop-settings">
+              <label>DURATION<select value={loopDuration} onChange={(event) => { setLoopDuration(Number(event.target.value)); setLoopProgress(0); loopStartedAt.current = 0; }}><option value="4">04 SEC</option><option value="6">06 SEC</option><option value="8">08 SEC</option></select></label>
+              <label>FRAME RATE<select value={loopFps} onChange={(event) => setLoopFps(Number(event.target.value))}><option value="24">24 FPS</option><option value="30">30 FPS</option><option value="60">60 FPS</option></select></label>
+              <label className="alpha-toggle"><span>BACKGROUND</span><button className={loopTransparent ? "active" : ""} onClick={() => setLoopTransparent(!loopTransparent)}>{loopTransparent ? "ALPHA" : "NEKO BLACK"}</button></label>
+              <button className="render-package" onClick={exportHyperFrames}>EXPORT VIDEO LOOP <span>↘</span><small>HYPERFRAMES COMPOSITION</small></button>
+            </div>
+          </section>}
 
           <div className="state-strip">
             <span className="eyebrow">STATE MATRIX</span>
@@ -521,7 +606,7 @@ export default function Home() {
 
           <section className="export-section">
             <div className="section-heading"><span>05</span><h2>EXPORT</h2></div>
-            <div className="export-grid"><button onClick={exportSvg}>SVG<small>VECTOR</small></button><button onClick={() => download(`${seed}.recipe.json`, recipeJson, "application/json")}>JSON<small>RECIPE</small></button><button onClick={() => download(`${seed}.css`, `/* ${seed} */\n.px7-${family} { --px7-accent: ${accentHex[recipe.accent]}; --px7-cut: ${recipe.cornerCut}px; --px7-density: ${recipe.density / 100}; border-width: ${recipe.borderWidth}px; }`, "text/css")}>CSS<small>TOKENS</small></button><button onClick={() => download(`${seed}.tsx`, `export const ${familyCode(family)}_${seed.slice(-3)} = ${recipeJson} as const;`, "text/plain")}>TSX<small>REACT</small></button></div>
+            <div className="export-grid"><button onClick={exportSvg}>SVG<small>VECTOR</small></button><button onClick={() => download(`${seed}.recipe.json`, recipeJson, "application/json")}>JSON<small>RECIPE</small></button><button onClick={() => download(`${seed}.css`, `/* ${seed} */\n.px7-${family} { --px7-accent: ${accentHex[recipe.accent]}; --px7-cut: ${recipe.cornerCut}px; --px7-density: ${recipe.density / 100}; border-width: ${recipe.borderWidth}px; }`, "text/css")}>CSS<small>TOKENS</small></button><button onClick={() => download(`${seed}.tsx`, `export const ${familyCode(family)}_${seed.slice(-3)} = ${recipeJson} as const;`, "text/plain")}>TSX<small>REACT</small></button><button className="video-export-button" onClick={() => selectLoopCollection(loopCollection)}>VIDEO LOOP<small>HYPERFRAMES</small></button></div>
             <p>Exports preserve seed, state behavior, geometry and PIX–7 token lineage.</p>
           </section>
         </aside>
