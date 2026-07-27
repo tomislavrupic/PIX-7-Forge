@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { requiredEffects } from "./effect-names.mjs";
 
 async function render() {
   const workerUrl = new URL("../dist/server/index.js", import.meta.url);
@@ -24,7 +25,6 @@ test("server-renders PIX-7 Forge product shell", async () => {
   assert.match(html, /SEED &amp; LINEAGE/);
   assert.match(html, /EXPORT/);
   assert.match(html, /51(?:<!-- -->)? SYSTEMS/);
-  assert.match(html, /Transit Spine/);
-  assert.match(html, /ASCII Overload/);
+  for (const effect of requiredEffects) assert.match(html, new RegExp(effect));
   assert.doesNotMatch(html, /codex-preview|react-loading-skeleton|Your site is taking shape/);
 });
