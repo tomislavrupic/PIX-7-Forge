@@ -398,6 +398,11 @@ export default function Home() {
     return categoryMatch && (!term || item.label.toLowerCase().includes(term) || item.code.toLowerCase().includes(term));
   }), [catalogueCategory, catalogueSearch]);
   const activeEffect = nekoEffects.find((effect) => effect.id === family);
+  const landingRecipes = useMemo(() => [
+    recipeFrom("PX7-SGB-611763979", "signal-board"),
+    recipeFrom("PX7-DSG-071248611", "district-grid"),
+    recipeFrom("PX7-PCR-980401707", "patrol-coordinates"),
+  ], []);
 
   const exportSvg = () => {
     const color = accentHex[recipe.accent];
@@ -408,7 +413,41 @@ export default function Home() {
 
   return (
     <main className="forge-shell">
-      <header className="topbar">
+      <section className="landing-hero">
+        <nav className="landing-nav">
+          <div className="landing-brand"><span>PIX–7</span><i /> ELEMENT FORGE</div>
+          <div><span>NEKO CITY SYSTEMS</span><span>BUILD 02.51</span><span className="landing-online">ONLINE</span></div>
+        </nav>
+        <div className="landing-grid">
+          <div className="landing-copy">
+            <span className="landing-kicker">DETERMINISTIC MOTION INFRASTRUCTURE</span>
+            <h1>BUILD THE<br /><em>SIGNAL</em><br />BENEATH<br />THE CITY.</h1>
+            <p>Generate production-ready interface elements, broadcast systems and motion primitives engineered for the PIX–7 universe.</p>
+            <div className="landing-actions">
+              <button onClick={() => document.getElementById("forge")?.scrollIntoView({ behavior: "smooth" })}>ENTER THE FORGE <span>↘</span></button>
+              <a href="https://github.com/tomislavrupic/PIX-7-Forge" target="_blank" rel="noreferrer">VIEW SOURCE ↗</a>
+            </div>
+          </div>
+          <div className="landing-visual">
+            <div className="landing-scan-label"><span>LIVE SYSTEM ARRAY</span><b>03 / 51</b></div>
+            <div className="landing-effects">
+              {landingRecipes.map((landingRecipe, index) => <div className={`landing-effect effect-${index}`} key={landingRecipe.family}><ComponentShape recipe={landingRecipe} /></div>)}
+            </div>
+            <div className="landing-crosshair"><i /><i /></div>
+            <span className="landing-coordinate coord-a">X 071.248</span>
+            <span className="landing-coordinate coord-b">Y 611.763</span>
+          </div>
+        </div>
+        <div className="landing-stats">
+          <div><strong>51</strong><span>GENERATIVE<br />SYSTEMS</span></div>
+          <div><strong>37</strong><span>NEKO CITY<br />EFFECTS</span></div>
+          <div><strong>06</strong><span>FORMS PER<br />SYSTEM</span></div>
+          <div><strong>∞</strong><span>STABLE SEED<br />LINEAGES</span></div>
+          <p>NO GLASS / NO GENERIC GRADIENTS / FUNCTION-FIRST MOTION</p>
+        </div>
+      </section>
+
+      <header className="topbar" id="forge">
         <div className="brand"><span className="brand-mark">PIX<span>–7</span></span><i /><strong>ELEMENT<br />FORGE</strong></div>
         <div className="top-status"><span><i className="online-dot" /> SYSTEM ONLINE</span><span>BUILD 01.07</span><span>{seedStatus}</span></div>
         <div className="top-actions"><button onClick={() => download(`${seed}.recipe.json`, recipeJson, "application/json")}>EXPORT RECIPE</button><button className="primary-action" onClick={() => setSaved(true)}>{saved ? "✓ MINTED" : "+ MINT COMPONENT"}</button></div>

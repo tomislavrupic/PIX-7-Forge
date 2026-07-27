@@ -18,6 +18,10 @@ test("server-renders PIX-7 Forge product shell", async () => {
 
   const html = await response.text();
   assert.match(html, /<title>PIX-7 Forge/);
+  assert.match(html, /BUILD THE/);
+  assert.match(html, /BENEATH/);
+  assert.match(html, /ENTER THE FORGE/);
+  assert.match(html, /DETERMINISTIC MOTION INFRASTRUCTURE/);
   assert.match(html, /ELEMENT/);
   assert.match(html, /FORGE/);
   assert.match(html, /LIVE ELEMENT/);
