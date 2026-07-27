@@ -1,8 +1,10 @@
 "use client";
 
 import { useCallback, useMemo, useState } from "react";
+import { nekoEffects, type EffectCategory, type NekoEffectId } from "./effects";
 
-type Family = "panel" | "button" | "slider" | "meter" | "badge" | "hud" | "reticle" | "orbit" | "loader" | "waveform" | "burst" | "pattern" | "divider" | "liquid";
+type CoreFamily = "panel" | "button" | "slider" | "meter" | "badge" | "hud" | "reticle" | "orbit" | "loader" | "waveform" | "burst" | "pattern" | "divider" | "liquid";
+type Family = CoreFamily | NekoEffectId;
 type State = "idle" | "hover" | "active" | "disabled" | "error";
 type Accent = "lime" | "cyan" | "purple" | "amber" | "red";
 type Structure = "flat" | "framed" | "segmented" | "modular" | "industrial";
@@ -26,22 +28,25 @@ type Recipe = {
   variant: number;
 };
 
-const families: { id: Family; label: string; code: string }[] = [
-  { id: "panel", label: "Panel", code: "PNL" },
-  { id: "button", label: "Button", code: "BTN" },
-  { id: "slider", label: "Slider", code: "SLD" },
-  { id: "meter", label: "Meter", code: "MTR" },
-  { id: "badge", label: "Badge", code: "BDG" },
-  { id: "hud", label: "HUD Marker", code: "HUD" },
-  { id: "reticle", label: "Reticle", code: "RTL" },
-  { id: "orbit", label: "Orbit", code: "ORB" },
-  { id: "loader", label: "Loader", code: "LDR" },
-  { id: "waveform", label: "Waveform", code: "WAV" },
-  { id: "burst", label: "Signal Burst", code: "BST" },
-  { id: "pattern", label: "Pattern", code: "PTN" },
-  { id: "divider", label: "Data Divider", code: "DVD" },
-  { id: "liquid", label: "Liquid Signal", code: "LIQ" },
+const coreFamilies: { id: CoreFamily; label: string; code: string; category: "core" }[] = [
+  { id: "panel", label: "Panel", code: "PNL", category: "core" },
+  { id: "button", label: "Button", code: "BTN", category: "core" },
+  { id: "slider", label: "Slider", code: "SLD", category: "core" },
+  { id: "meter", label: "Meter", code: "MTR", category: "core" },
+  { id: "badge", label: "Badge", code: "BDG", category: "core" },
+  { id: "hud", label: "HUD Marker", code: "HUD", category: "core" },
+  { id: "reticle", label: "Reticle", code: "RTL", category: "core" },
+  { id: "orbit", label: "Orbit", code: "ORB", category: "core" },
+  { id: "loader", label: "Loader", code: "LDR", category: "core" },
+  { id: "waveform", label: "Waveform", code: "WAV", category: "core" },
+  { id: "burst", label: "Signal Burst", code: "BST", category: "core" },
+  { id: "pattern", label: "Pattern", code: "PTN", category: "core" },
+  { id: "divider", label: "Data Divider", code: "DVD", category: "core" },
+  { id: "liquid", label: "Liquid Signal", code: "LIQ", category: "core" },
 ];
+const families = [...coreFamilies, ...nekoEffects];
+type CatalogueCategory = "all" | "core" | EffectCategory;
+const catalogueCategories: CatalogueCategory[] = ["all", "core", "city", "security", "signal", "broadcast", "archive", "type"];
 
 const roles = ["Primary", "Secondary", "Warning", "Data", "Navigation", "Playback"];
 const structures: Structure[] = ["flat", "framed", "segmented", "modular", "industrial"];
@@ -113,6 +118,79 @@ function download(filename: string, content: string, type: string) {
   URL.revokeObjectURL(url);
 }
 
+function NekoEffectShape({ effect, recipe, common, style }: {
+  effect: (typeof nekoEffects)[number];
+  recipe: Recipe;
+  common: string;
+  style: React.CSSProperties;
+}) {
+  const marks = Array.from({ length: Math.max(24, recipe.segments * 3) });
+  const label = effect.label.toUpperCase();
+  const markStyle = (index: number) => ({
+    "--i": index,
+    "--count": marks.length,
+    "--x": `${(index * 37 + recipe.variant * 11) % 100}%`,
+    "--y": `${(index * 61 + recipe.segments * 7) % 100}%`,
+    "--delay": `${-(index % 12) * 0.11}s`,
+  } as React.CSSProperties);
+
+  const frame = (children: React.ReactNode) => (
+    <div className={`${common} neko-effect fx-${effect.id} mode-${effect.mode}`} style={style}>
+      <div className="fx-meta"><span>NEKO CITY / {effect.code}</span><b>{String(recipe.variant).padStart(2, "0")}</b></div>
+      <div className="fx-canvas">{children}</div>
+      <div className="fx-caption"><strong>{label}</strong><span>{effect.description}</span></div>
+    </div>
+  );
+
+  if (effect.mode === "led") {
+    return frame(<div className="fx-led"><span>NEKO</span><i>●</i><span>CITY 07</span></div>);
+  }
+  if (effect.mode === "text") {
+    return frame(<div className="fx-type" data-text={label}>{label}</div>);
+  }
+  if (effect.mode === "ascii") {
+    const glyphs = "▓▒░/\\+*#<>[]";
+    return frame(<div className="fx-ascii">{marks.map((_, index) => <i key={index} style={markStyle(index)}>{glyphs[(index + recipe.variant) % glyphs.length]}</i>)}</div>);
+  }
+  if (effect.mode === "orbit-text") {
+    return frame(<div className="fx-orbit-type"><span>RESTRICTED • NEKO CITY • SECTOR 07 • KEEP SIGNAL CLEAR •</span><i /></div>);
+  }
+  if (effect.mode === "type-wave") {
+    return frame(<div className="fx-type-wave">{label.split("").map((char, index) => <i key={`${char}-${index}`} style={{ "--i": index } as React.CSSProperties}>{char === " " ? "\u00a0" : char}</i>)}</div>);
+  }
+  if (effect.mode === "lines" || effect.mode === "waves" || effect.mode === "pulse") {
+    return frame(<div className="fx-lines">{Array.from({ length: 15 }).map((_, index) => <i key={index} style={{ "--i": index } as React.CSSProperties} />)}<span /></div>);
+  }
+  if (effect.mode === "grid" || effect.mode === "dots" || effect.mode === "field") {
+    return frame(<div className="fx-grid">{marks.map((_, index) => <i key={index} style={markStyle(index)} />)}<span /></div>);
+  }
+  if (effect.mode === "cursor" || effect.mode === "spotlight") {
+    return frame(<div className="fx-locator"><i className="axis-x" /><i className="axis-y" /><span /><b>X 071 / Y 248</b></div>);
+  }
+  if (effect.mode === "orbit" || effect.mode === "orb" || effect.mode === "arcs" || effect.mode === "ripple") {
+    return frame(<div className="fx-radial"><i className="radial-a" /><i className="radial-b" /><i className="radial-c" /><span /></div>);
+  }
+  if (effect.mode === "route") {
+    return frame(<div className="fx-route">{Array.from({ length: 13 }).map((_, index) => <i key={index} style={{ "--i": index } as React.CSSProperties} />)}<span /></div>);
+  }
+  if (effect.mode === "void" || effect.mode === "tunnel") {
+    return frame(<div className="fx-tunnel">{Array.from({ length: 12 }).map((_, index) => <i key={index} style={{ "--i": index } as React.CSSProperties} />)}<span /></div>);
+  }
+  if (effect.mode === "border") {
+    return frame(<div className="fx-border"><i /><span>ACCESS / {effect.code}</span></div>);
+  }
+  if (effect.mode === "trail" || effect.mode === "liquid") {
+    return frame(<div className="fx-trails">{Array.from({ length: 8 }).map((_, index) => <i key={index} style={{ "--i": index } as React.CSSProperties} />)}</div>);
+  }
+  if (effect.mode === "particles") {
+    return frame(<div className="fx-particles">{marks.map((_, index) => <i key={index} style={markStyle(index)} />)}<span>PACKET 07</span></div>);
+  }
+  if (effect.mode === "reveal" || effect.mode === "tiles" || effect.mode === "pixel") {
+    return frame(<div className="fx-tiles">{marks.map((_, index) => <i key={index} style={markStyle(index)} />)}<span>ARCHIVE / FRAME 611</span></div>);
+  }
+  return frame(<div className="fx-grid">{marks.map((_, index) => <i key={index} style={markStyle(index)} />)}</div>);
+}
+
 function ComponentShape({ recipe, scale = 1, state }: { recipe: Recipe; scale?: number; state?: State }) {
   const currentState = state ?? recipe.state;
   const style = {
@@ -125,6 +203,8 @@ function ComponentShape({ recipe, scale = 1, state }: { recipe: Recipe; scale?: 
     "--variant": recipe.variant,
   } as React.CSSProperties;
   const common = `generated generated-${recipe.family} variant-${recipe.variant} structure-${recipe.structure} state-${currentState} anim-${recipe.animation}`;
+  const nekoEffect = nekoEffects.find((effect) => effect.id === recipe.family);
+  if (nekoEffect) return <NekoEffectShape effect={nekoEffect} recipe={recipe} common={common} style={style} />;
 
   if (recipe.family === "button") {
     return (
@@ -264,6 +344,8 @@ export default function Home() {
   const [context, setContext] = useState<"isolated" | "echo" | "zogg" | "studio">("isolated");
   const [grid, setGrid] = useState(true);
   const [saved, setSaved] = useState(false);
+  const [catalogueCategory, setCatalogueCategory] = useState<CatalogueCategory>("all");
+  const [catalogueSearch, setCatalogueSearch] = useState("");
 
   const applyGenerated = useCallback((newSeed: string, newFamily: Family, mode: "reroll" | "mutate") => {
     const generated = recipeFrom(newSeed, newFamily);
@@ -310,6 +392,12 @@ export default function Home() {
 
   const seedStatus = useMemo(() => `${familyCode(family)} / GEN ${seed.slice(-3)}`, [family, seed]);
   const recipeJson = useMemo(() => JSON.stringify({ seed, version: "PIX-7/FORGE-01", ...recipe }, null, 2), [recipe, seed]);
+  const filteredFamilies = useMemo(() => families.filter((item) => {
+    const categoryMatch = catalogueCategory === "all" || item.category === catalogueCategory;
+    const term = catalogueSearch.trim().toLowerCase();
+    return categoryMatch && (!term || item.label.toLowerCase().includes(term) || item.code.toLowerCase().includes(term));
+  }), [catalogueCategory, catalogueSearch]);
+  const activeEffect = nekoEffects.find((effect) => effect.id === family);
 
   const exportSvg = () => {
     const color = accentHex[recipe.accent];
@@ -329,10 +417,13 @@ export default function Home() {
       <div className="workspace">
         <aside className="control-rail">
           <section className="family-section">
-            <div className="section-heading"><span>01</span><h2>ELEMENT FAMILY</h2></div>
+            <div className="section-heading"><span>01</span><h2>ELEMENT FAMILY</h2><small>{families.length} SYSTEMS</small></div>
+            <input className="catalogue-search" value={catalogueSearch} onChange={(event) => setCatalogueSearch(event.target.value)} placeholder="SEARCH CITY SYSTEMS" aria-label="Search element families" />
+            <div className="catalogue-filters">{catalogueCategories.map((item) => <button key={item} className={catalogueCategory === item ? "active" : ""} onClick={() => setCatalogueCategory(item)}>{item}</button>)}</div>
             <div className="family-grid">
-              {families.map((item) => <button key={item.id} className={family === item.id ? "selected" : ""} onClick={() => selectFamily(item.id)}><i className={`family-icon icon-${item.id}`} />{item.label}<small>{item.code}</small></button>)}
+              {filteredFamilies.map((item) => <button key={item.id} className={family === item.id ? "selected" : ""} onClick={() => selectFamily(item.id)} title={"description" in item ? item.description : item.label}><i className={`family-icon ${item.category !== "core" ? "effect-icon" : ""} icon-${item.id}`} />{item.label}<small>{item.code} / {item.category}</small></button>)}
             </div>
+            {filteredFamilies.length === 0 && <p className="catalogue-empty">NO MATCHING SYSTEMS</p>}
           </section>
 
           <section>
@@ -351,7 +442,7 @@ export default function Home() {
 
         <section className="preview-zone">
           <div className="preview-toolbar">
-            <div><span className="eyebrow">LIVE ELEMENT</span><h1>{family.toUpperCase()} / {recipe.role.toUpperCase()} <small>{seed}</small></h1></div>
+            <div><span className="eyebrow">{activeEffect ? `NEKO CITY / ${activeEffect.category.toUpperCase()}` : "LIVE ELEMENT"}</span><h1>{(activeEffect?.label ?? family).toUpperCase()} / {recipe.role.toUpperCase()} <small>{seed}</small></h1></div>
             <div className="view-controls"><button className={grid ? "active" : ""} onClick={() => setGrid(!grid)}># GRID</button><button>1×</button><button>2×</button><button>4×</button></div>
           </div>
 

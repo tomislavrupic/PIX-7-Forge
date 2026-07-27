@@ -6,20 +6,23 @@ assets instead of one-off graphics.
 
 Live page: [tomislavrupic.github.io/PIX-7-Forge](https://tomislavrupic.github.io/PIX-7-Forge/)
 
-## First release
+## Effect catalogue
 
-The initial generator supports:
+The generator includes 51 systems:
 
-- panels
-- buttons
-- sliders
-- segmented meters
-- badges
-- HUD markers
+- 14 foundational interface and motion families
+- 37 Neko City effects across city, security, signal, broadcast, archive,
+  and typography categories
+- six deterministic form variants for every system
+- catalogue search and category filtering
 
 Every component is generated from a stable seed and structured recipe. Traits
 can be edited, locked, rerolled, or mutated while the result is tested across
 interaction states and Pixel Echo, ZOGG, and Pixel Studio contexts.
+
+The Neko City catalogue includes transit and district systems, patrol
+instruments, signal fields, particle environments, archive reconstruction,
+security boundaries, damaged typography, and broadcast displays.
 
 ## Exports
 

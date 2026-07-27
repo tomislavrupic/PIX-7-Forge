@@ -23,5 +23,8 @@ test("server-renders PIX-7 Forge product shell", async () => {
   assert.match(html, /DESIGN DNA/);
   assert.match(html, /SEED &amp; LINEAGE/);
   assert.match(html, /EXPORT/);
+  assert.match(html, /51(?:<!-- -->)? SYSTEMS/);
+  assert.match(html, /Transit Spine/);
+  assert.match(html, /ASCII Overload/);
   assert.doesNotMatch(html, /codex-preview|react-loading-skeleton|Your site is taking shape/);
 });
