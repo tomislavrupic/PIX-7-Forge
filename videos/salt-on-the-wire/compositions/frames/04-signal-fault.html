@@ -1,0 +1,370 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+  </head>
+  <body>
+    <template>
+      <style>
+        #stage {
+          position: relative;
+          width: 1920px;
+          height: 1080px;
+          overflow: hidden;
+          container-type: size;
+          background: #111111;
+          color: #f0ece5;
+          font-family: Inter, sans-serif;
+        }
+
+        #stage > video {
+          position: absolute;
+          inset: -2%;
+          width: 104%;
+          height: 104%;
+          object-fit: cover;
+          background: #111111;
+        }
+
+        #g1-fault-field {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          pointer-events: none;
+          opacity: 0;
+        }
+
+        .g1-fault-vignette {
+          position: absolute;
+          inset: 0;
+          opacity: 0.22;
+          background:
+            linear-gradient(90deg, rgba(17, 17, 17, 0.48), transparent 19%, transparent 81%, rgba(17, 17, 17, 0.48)),
+            linear-gradient(rgba(17, 17, 17, 0.12), rgba(17, 17, 17, 0.12));
+        }
+
+        .g1-fault-scan {
+          position: absolute;
+          inset: 0;
+          opacity: 0;
+          background:
+            repeating-linear-gradient(0deg, transparent 0 6px, rgba(232, 93, 38, 0.16) 7px, transparent 8px),
+            linear-gradient(108deg, transparent 35%, rgba(232, 93, 38, 0.13) 44%, transparent 52%);
+        }
+
+        .g1-fault-chrome {
+          position: absolute;
+          inset: 5.5cqw;
+          border-top: 1px solid rgba(240, 236, 229, 0.42);
+          border-bottom: 1px solid rgba(240, 236, 229, 0.42);
+          opacity: 0;
+        }
+
+        .g1-fault-chrome::before,
+        .g1-fault-chrome::after {
+          content: "";
+          position: absolute;
+          left: 0;
+          width: 22cqw;
+          height: 3px;
+          background: repeating-linear-gradient(90deg, #e85d26 0 31px, transparent 31px 43px);
+        }
+
+        .g1-fault-chrome::before { top: -1px; }
+        .g1-fault-chrome::after { bottom: -1px; transform: scaleX(-1); }
+
+        .g1-fault-topline,
+        .g1-fault-bottomline {
+          position: absolute;
+          left: 5.5cqw;
+          right: 5.5cqw;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          font: 500 0.72cqw/1 "IBM Plex Mono", monospace;
+          letter-spacing: 0.14em;
+          text-transform: uppercase;
+          opacity: 0;
+        }
+
+        .g1-fault-topline { top: 3.35cqh; }
+        .g1-fault-bottomline { bottom: 3.1cqh; color: #888880; }
+        .g1-fault-topline b,
+        .g1-fault-bottomline b { color: #e85d26; font-weight: 500; }
+
+        #g1-fault-title {
+          position: absolute;
+          left: 50%;
+          top: 48%;
+          translate: -50% -50%;
+          margin: 0;
+          width: max-content;
+          max-width: 78cqw;
+          color: #f0ece5;
+          font: 900 9.4cqw/.78 Inter, sans-serif;
+          letter-spacing: -0.04em;
+          text-transform: lowercase;
+          opacity: 0;
+        }
+
+        #g1-fault-title::before,
+        #g1-fault-title::after {
+          content: attr(data-label);
+          position: absolute;
+          inset: 0;
+          pointer-events: none;
+        }
+
+        #g1-fault-title::before {
+          color: #e85d26;
+          translate: -10px 0;
+          opacity: 0.72;
+          clip-path: inset(0 0 54% 0);
+        }
+
+        #g1-fault-title::after {
+          color: #888880;
+          translate: 10px 0;
+          opacity: 0.62;
+          clip-path: inset(54% 0 0 0);
+        }
+
+        #g1-fault-subtitle {
+          position: absolute;
+          left: 50%;
+          top: 61%;
+          translate: -50% 0;
+          color: #e85d26;
+          font: 500 0.72cqw/1 "IBM Plex Mono", monospace;
+          letter-spacing: 0.18em;
+          text-transform: uppercase;
+          white-space: nowrap;
+          opacity: 0;
+        }
+
+        .g1-fault-tears {
+          position: absolute;
+          inset: 0;
+          opacity: 0;
+        }
+
+        .g1-fault-tears i {
+          position: absolute;
+          left: -18%;
+          width: 136%;
+          height: var(--h);
+          border-top: 1px solid #e85d26;
+          border-bottom: 1px solid rgba(240, 236, 229, 0.6);
+          background: rgba(232, 93, 38, 0.16);
+          transform: translateX(var(--x));
+        }
+
+        .g1-fault-tears i:nth-child(1) { top: 27%; --h: 4.4%; --x: -8%; }
+        .g1-fault-tears i:nth-child(2) { top: 43%; --h: 1.2%; --x: 13%; }
+        .g1-fault-tears i:nth-child(3) { top: 59%; --h: 6.1%; --x: -15%; }
+        .g1-fault-tears i:nth-child(4) { top: 76%; --h: 2.2%; --x: 9%; }
+
+        #g1-fault-cells {
+          position: absolute;
+          inset: 0;
+          display: grid;
+          grid-template-columns: repeat(16, 1fr);
+          grid-template-rows: repeat(9, 1fr);
+          opacity: 0;
+        }
+
+        #g1-fault-cells i {
+          border: 1px solid rgba(232, 93, 38, 0.12);
+          background: #111111;
+          opacity: 0;
+        }
+
+        #g1-fault-diagnostic {
+          position: absolute;
+          inset: 0;
+          display: grid;
+          place-items: center;
+          background: #e85d26;
+          color: #111111;
+          opacity: 0;
+        }
+
+        #g1-fault-diagnostic strong {
+          font: 900 13cqw/.76 Inter, sans-serif;
+          letter-spacing: -0.04em;
+          text-transform: lowercase;
+        }
+
+        #g1-fault-recovery {
+          position: absolute;
+          left: 5.5cqw;
+          bottom: 8.2cqh;
+          width: 34cqw;
+          padding: 1.6cqh 1.4cqw;
+          border-top: 1px solid #e85d26;
+          background: rgba(17, 17, 17, 0.82);
+          opacity: 0;
+        }
+
+        #g1-fault-recovery small {
+          display: block;
+          color: #e85d26;
+          font: 500 0.72cqw/1 "IBM Plex Mono", monospace;
+          letter-spacing: 0.14em;
+          text-transform: uppercase;
+        }
+
+        #g1-fault-recovery strong {
+          display: block;
+          margin-top: 1cqh;
+          color: #f0ece5;
+          font: 900 2.8cqw/.9 Inter, sans-serif;
+          letter-spacing: -0.03em;
+          text-transform: lowercase;
+        }
+
+        .g1-fault-route {
+          display: block;
+          width: 100%;
+          height: 3px;
+          margin-top: 1.4cqh;
+          background: #282826;
+        }
+
+        .g1-fault-route i {
+          display: block;
+          width: 100%;
+          height: 100%;
+          background: #e85d26;
+          transform-origin: 0 50%;
+        }
+      </style>
+
+      <div
+        id="stage"
+        data-composition-id="04-signal-fault"
+        data-width="1920"
+        data-height="1080"
+        data-duration="63.924"
+      >
+        <video id="g1-fault-video-01" class="clip" src="assets/public/island-02.mp4" muted playsinline loop data-start="0" data-duration="1.463" data-media-start="0.35" data-track-index="0"></video>
+        <video id="g1-fault-video-02" class="clip" src="assets/public/island-01.mp4" muted playsinline loop data-start="1.463" data-duration="3.924" data-media-start="1.20" data-track-index="0"></video>
+        <video id="g1-fault-video-03" class="clip" src="assets/public/island-04.mp4" muted playsinline loop data-start="5.387" data-duration="3.901" data-media-start="2.05" data-track-index="0"></video>
+        <video id="g1-fault-video-04" class="clip" src="assets/public/island-06.mp4" muted playsinline loop data-start="9.288" data-duration="3.901" data-media-start="0.70" data-track-index="0"></video>
+        <video id="g1-fault-video-05" class="clip" src="assets/public/island-03.mp4" muted playsinline loop data-start="13.189" data-duration="3.924" data-media-start="1.55" data-track-index="0"></video>
+        <video id="g1-fault-video-06" class="clip" src="assets/public/island-05.mp4" muted playsinline loop data-start="17.113" data-duration="3.901" data-media-start="2.40" data-track-index="0"></video>
+        <video id="g1-fault-video-07" class="clip" src="assets/public/island-02.mp4" muted playsinline loop data-start="21.014" data-duration="3.901" data-media-start="0.95" data-track-index="0"></video>
+        <video id="g1-fault-video-08" class="clip" src="assets/public/island-01.mp4" muted playsinline loop data-start="24.915" data-duration="3.901" data-media-start="1.80" data-track-index="0"></video>
+        <video id="g1-fault-video-09" class="clip" src="assets/public/island-04.mp4" muted playsinline loop data-start="28.816" data-duration="3.924" data-media-start="2.65" data-track-index="0"></video>
+        <video id="g1-fault-video-10" class="clip" src="assets/public/island-06.mp4" muted playsinline loop data-start="32.740" data-duration="3.901" data-media-start="1.15" data-track-index="0"></video>
+        <video id="g1-fault-video-11" class="clip" src="assets/public/island-03.mp4" muted playsinline loop data-start="36.641" data-duration="3.878" data-media-start="2.00" data-track-index="0"></video>
+        <video id="g1-fault-video-12" class="clip" src="assets/public/island-05.mp4" muted playsinline loop data-start="40.519" data-duration="3.901" data-media-start="0.55" data-track-index="0"></video>
+        <video id="g1-fault-video-13" class="clip" src="assets/public/island-02.mp4" muted playsinline loop data-start="44.420" data-duration="3.924" data-media-start="1.40" data-track-index="0"></video>
+        <video id="g1-fault-video-14" class="clip" src="assets/public/island-01.mp4" muted playsinline loop data-start="48.344" data-duration="3.901" data-media-start="2.25" data-track-index="0"></video>
+        <video id="g1-fault-video-15" class="clip" src="assets/public/island-04.mp4" muted playsinline loop data-start="52.245" data-duration="3.877" data-media-start="0.80" data-track-index="0"></video>
+        <video id="g1-fault-video-16" class="clip" src="assets/public/island-06.mp4" muted playsinline loop data-start="56.122" data-duration="3.901" data-media-start="1.65" data-track-index="0"></video>
+        <video id="g1-fault-video-17" class="clip" src="assets/public/island-03.mp4" muted playsinline loop data-start="60.023" data-duration="1.951" data-media-start="2.50" data-track-index="0"></video>
+        <video id="g1-fault-video-18" class="clip" src="assets/public/island-05.mp4" muted playsinline loop data-start="61.974" data-duration="1.950" data-media-start="1.05" data-track-index="0"></video>
+
+        <div id="g1-fault-field">
+          <div class="g1-fault-vignette"></div>
+          <div class="g1-fault-scan"></div>
+          <div class="g1-fault-chrome"></div>
+          <div class="g1-fault-topline"><span>PIX-7 / COASTAL SIGNAL</span><b>FAULT CHANNEL 04</b></div>
+          <div class="g1-fault-bottomline"><span>PACKET LOSS / COASTLINE DESYNC</span><b>ROUTE 611763979</b></div>
+          <h1 id="g1-fault-title" data-label="signal fault">signal fault</h1>
+          <div id="g1-fault-subtitle">chroma desync / packet damage</div>
+          <div class="g1-fault-tears"><i></i><i></i><i></i><i></i></div>
+          <div id="g1-fault-cells"></div>
+          <div id="g1-fault-diagnostic" data-layout-allow-overlap data-layout-allow-occlusion><strong>packet loss</strong></div>
+          <div id="g1-fault-recovery">
+            <small>recovery route / island state</small>
+            <strong>signal reacquired</strong>
+            <span class="g1-fault-route"><i></i></span>
+          </div>
+        </div>
+      </div>
+
+      <script>
+        window.__timelines = window.__timelines || {};
+
+        const g1FaultCells = document.getElementById("g1-fault-cells");
+        for (let i = 0; i < 144; i += 1) {
+          const cell = document.createElement("i");
+          if (((i * 37) % 11) > 5) cell.style.background = "rgba(232, 93, 38, 0.74)";
+          g1FaultCells.appendChild(cell);
+        }
+
+        const tl = gsap.timeline({ paused: true });
+        const g1FaultBursts = [1.463, 9.288, 17.113, 24.915, 32.740, 40.519, 48.344, 56.122, 61.974];
+        const g1FaultRecoveries = [5.387, 13.189, 28.816, 44.420, 52.245];
+
+        tl.set("#g1-fault-field", { autoAlpha: 1 }, 0);
+        tl.fromTo(".g1-fault-vignette", { opacity: 0.12 }, { opacity: 0.26, duration: 8, ease: "none" }, 0);
+
+        g1FaultBursts.forEach((anchor, index) => {
+          const direction = index % 2 === 0 ? 1 : -1;
+          tl.fromTo(".g1-fault-scan",
+            { opacity: 0, x: -32 * direction },
+            { opacity: 0.82, x: 34 * direction, duration: 0.18, ease: "none" },
+            anchor
+          );
+          tl.to(".g1-fault-scan", { opacity: 0, duration: 0.32, ease: "power2.out" }, anchor + 0.18);
+          tl.fromTo(".g1-fault-tears",
+            { autoAlpha: 0, x: -110 * direction },
+            { autoAlpha: 0.88, x: 78 * direction, duration: 0.11, ease: "steps(3)" },
+            anchor
+          );
+          tl.to(".g1-fault-tears", { autoAlpha: 0, x: -44 * direction, duration: 0.22, ease: "steps(2)" }, anchor + 0.13);
+          tl.fromTo("#g1-fault-title",
+            { autoAlpha: 0, x: -18 * direction, scaleX: 1.04 },
+            { autoAlpha: 1, x: 13 * direction, scaleX: 1, duration: 0.12, ease: "steps(2)" },
+            anchor
+          );
+          tl.to("#g1-fault-title", { autoAlpha: 0, x: 0, duration: 0.28, ease: "none" }, anchor + 0.52);
+          tl.fromTo("#g1-fault-subtitle",
+            { autoAlpha: 0, x: 32 * direction },
+            { autoAlpha: 1, x: 0, duration: 0.08, ease: "none" },
+            anchor + 0.08
+          );
+          tl.to("#g1-fault-subtitle", { autoAlpha: 0, duration: 0.16, ease: "none" }, anchor + 0.64);
+          tl.fromTo("#g1-fault-cells",
+            { autoAlpha: 0 },
+            { autoAlpha: 0.72, duration: 0.06, ease: "none" },
+            anchor + 0.18
+          );
+          tl.fromTo("#g1-fault-cells i",
+            { opacity: 0 },
+            { opacity: (cellIndex) => ((cellIndex * 13 + index * 7) % 9) < 3 ? 0.88 : 0, duration: 0.08, stagger: 0.001, ease: "none" },
+            anchor + 0.18
+          );
+          tl.to("#g1-fault-cells", { autoAlpha: 0, duration: 0.18, ease: "none" }, anchor + 0.58);
+        });
+
+        [9.288, 32.740, 61.974].forEach((anchor) => {
+          tl.fromTo("#g1-fault-diagnostic", { opacity: 0.94 }, { opacity: 0, duration: 0.12, ease: "none" }, anchor);
+        });
+
+        g1FaultRecoveries.forEach((anchor, index) => {
+          tl.fromTo([".g1-fault-chrome", ".g1-fault-topline", ".g1-fault-bottomline"],
+            { opacity: 0 },
+            { opacity: index === 2 ? 0.9 : 0.62, duration: 0.22, ease: "power2.out" },
+            anchor
+          );
+          tl.to([".g1-fault-chrome", ".g1-fault-topline", ".g1-fault-bottomline"], { opacity: 0, duration: 0.36, ease: "power2.in" }, anchor + 2.5);
+          tl.fromTo("#g1-fault-recovery",
+            { autoAlpha: 0, y: 18 },
+            { autoAlpha: 1, y: 0, duration: 0.24, ease: "power2.out" },
+            anchor + 0.16
+          );
+          tl.fromTo(".g1-fault-route i", { scaleX: 0 }, { scaleX: 1, duration: 1.15, ease: "power2.out" }, anchor + 0.3);
+          tl.to("#g1-fault-recovery", { autoAlpha: 0, y: -10, duration: 0.3, ease: "power2.in" }, anchor + 2.2);
+        });
+
+        tl.set("#g1-fault-field", { autoAlpha: 0 }, 63.924);
+        tl.seek(0);
+        window.__timelines["04-signal-fault"] = tl;
+      </script>
+    </template>
+  </body>
+</html>

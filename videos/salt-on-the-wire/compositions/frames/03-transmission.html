@@ -1,0 +1,461 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+  </head>
+  <body>
+    <template>
+      <style>
+        #stage {
+          position: relative;
+          width: 1920px;
+          height: 1080px;
+          overflow: hidden;
+          container-type: size;
+          background: #111111;
+          color: #f0ece5;
+          font-family: Inter, sans-serif;
+        }
+
+        #stage > video {
+          position: absolute;
+          inset: -2%;
+          width: 104%;
+          height: 104%;
+          object-fit: cover;
+          background: #111111;
+        }
+
+        #g1-transmission-field {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          pointer-events: none;
+          opacity: 0;
+          background:
+            linear-gradient(rgba(17, 17, 17, 0.08), rgba(17, 17, 17, 0.08)),
+            repeating-linear-gradient(0deg, transparent 0 5px, rgba(240, 236, 229, 0.025) 6px);
+        }
+
+        .g1-grid {
+          position: absolute;
+          inset: 0;
+          opacity: 0.22;
+          background-image:
+            linear-gradient(rgba(240, 236, 229, 0.13) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(240, 236, 229, 0.13) 1px, transparent 1px);
+          background-size: 120px 120px;
+          mask-image: radial-gradient(circle at 50% 55%, #000 0 30%, transparent 76%);
+        }
+
+        .g1-chrome {
+          position: absolute;
+          inset: 5.5cqw;
+          border-top: 1px solid rgba(240, 236, 229, 0.4);
+          border-bottom: 1px solid rgba(240, 236, 229, 0.4);
+        }
+
+        .g1-chrome::before,
+        .g1-chrome::after {
+          content: "";
+          position: absolute;
+          top: -1px;
+          width: 18cqw;
+          height: 3px;
+          background: repeating-linear-gradient(90deg, #e85d26 0 24px, transparent 24px 34px);
+        }
+
+        .g1-chrome::before { left: 0; }
+        .g1-chrome::after { right: 0; transform: scaleX(-1); }
+
+        .g1-topline,
+        .g1-bottomline {
+          position: absolute;
+          left: 5.5cqw;
+          right: 5.5cqw;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          font: 500 0.72cqw/1 "IBM Plex Mono", monospace;
+          letter-spacing: 0.14em;
+          text-transform: uppercase;
+          color: #f0ece5;
+        }
+
+        .g1-topline { top: 3.4cqh; }
+        .g1-bottomline { bottom: 3.2cqh; color: #888880; }
+        .g1-topline b { color: #e85d26; font-weight: 500; }
+        .g1-bottomline b { color: #f0ece5; font-weight: 500; }
+
+        .g1-route {
+          position: absolute;
+          inset: 0;
+        }
+
+        .g1-route i {
+          position: absolute;
+          height: 1px;
+          background: #e85d26;
+          transform-origin: 0 50%;
+          opacity: 0.7;
+        }
+
+        .g1-route i::after {
+          content: "";
+          position: absolute;
+          right: -3px;
+          top: -3px;
+          width: 7px;
+          height: 7px;
+          background: #e85d26;
+        }
+
+        .g1-route .r1 { left: 8%; top: 24%; width: 25%; transform: rotate(19deg); }
+        .g1-route .r2 { left: 73%; top: 19%; width: 20%; transform: rotate(132deg); }
+        .g1-route .r3 { left: 12%; top: 78%; width: 22%; transform: rotate(-24deg); }
+        .g1-route .r4 { left: 66%; top: 77%; width: 27%; transform: rotate(-151deg); }
+
+        .g1-particles {
+          position: absolute;
+          inset: 0;
+        }
+
+        .g1-particles i {
+          position: absolute;
+          left: var(--x);
+          top: var(--y);
+          width: var(--s);
+          height: var(--s);
+          background: #e85d26;
+          opacity: 0.16;
+        }
+
+        .g1-packet {
+          position: absolute;
+          left: 50%;
+          top: 53%;
+          width: 18cqw;
+          aspect-ratio: 1;
+          translate: -50% -50%;
+          display: grid;
+          place-items: center;
+          border: 1px solid #e85d26;
+          clip-path: polygon(1.2cqw 0, 100% 0, 100% calc(100% - 1.2cqw), calc(100% - 1.2cqw) 100%, 0 100%, 0 1.2cqw);
+          opacity: 0;
+        }
+
+        .g1-packet::before,
+        .g1-packet::after {
+          content: "";
+          position: absolute;
+          inset: 12%;
+          border: 1px solid rgba(232, 93, 38, 0.72);
+          border-radius: 50%;
+        }
+
+        .g1-packet::after {
+          inset: 28%;
+          border-style: dashed;
+        }
+
+        .g1-packet-copy {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          z-index: 1;
+        }
+
+        .g1-packet-copy strong {
+          font: 900 4.3cqw/.8 Inter, sans-serif;
+          letter-spacing: -0.04em;
+          color: #f0ece5;
+        }
+
+        .g1-packet-copy span {
+          margin-top: 1.2cqh;
+          font: 500 0.72cqw/1 "IBM Plex Mono", monospace;
+          letter-spacing: 0.14em;
+          color: #e85d26;
+        }
+
+        .g1-pulses {
+          position: absolute;
+          inset: 0;
+        }
+
+        .g1-pulses i {
+          position: absolute;
+          left: 50%;
+          top: 53%;
+          width: 19cqw;
+          aspect-ratio: 1;
+          translate: -50% -50%;
+          border: 1px solid #e85d26;
+          border-radius: 50%;
+          opacity: 0;
+        }
+
+        .g1-broadcast {
+          position: absolute;
+          inset: 9cqh 5.5cqw;
+          display: grid;
+          grid-template-rows: 10cqh 1fr 9cqh;
+          background: #111111;
+          border: 1px solid #e85d26;
+          opacity: 0;
+        }
+
+        .g1-broadcast header,
+        .g1-broadcast footer {
+          display: flex;
+          align-items: center;
+          padding: 0 2.5cqw;
+          border-bottom: 1px solid #282826;
+          font: 500 0.72cqw/1 "IBM Plex Mono", monospace;
+          letter-spacing: 0.14em;
+          text-transform: uppercase;
+        }
+
+        .g1-broadcast header b {
+          margin-left: auto;
+          padding: 1.2cqh 1.1cqw;
+          background: #e85d26;
+          color: #111111;
+        }
+
+        .g1-broadcast main {
+          position: relative;
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+          padding: 0 5.5cqw;
+          overflow: hidden;
+        }
+
+        .g1-broadcast main small {
+          font: 500 0.72cqw/1 "IBM Plex Mono", monospace;
+          letter-spacing: 0.14em;
+          color: #e85d26;
+        }
+
+        .g1-broadcast main strong {
+          margin-top: 1.5cqh;
+          font: 900 10.5cqw/.78 Inter, sans-serif;
+          letter-spacing: -0.04em;
+          text-transform: lowercase;
+          color: #f0ece5;
+        }
+
+        .g1-broadcast footer {
+          gap: 3cqw;
+          border: 0;
+          border-top: 1px solid #282826;
+          color: #888880;
+          overflow: hidden;
+        }
+
+        .g1-broadcast footer b { color: #e85d26; font-weight: 500; }
+        .g1-broadcast footer span { white-space: nowrap; }
+
+        .g1-bars {
+          position: absolute;
+          right: 5.5cqw;
+          bottom: 6cqh;
+          width: 23cqw;
+          height: 15cqh;
+          display: flex;
+          align-items: end;
+          gap: 0.45cqw;
+        }
+
+        .g1-bars i {
+          flex: 1;
+          height: var(--h);
+          background: #e85d26;
+          opacity: 0.72;
+        }
+
+        .g1-trails {
+          position: absolute;
+          inset: 0;
+          opacity: 0;
+        }
+
+        .g1-trails i {
+          position: absolute;
+          left: 8%;
+          width: var(--w);
+          top: var(--y);
+          height: 3px;
+          background: #e85d26;
+          transform: skewX(-28deg);
+        }
+
+        .g1-trails i:nth-child(even) {
+          left: auto;
+          right: 8%;
+          background: #f0ece5;
+          opacity: 0.55;
+        }
+
+        .g1-flash {
+          position: absolute;
+          inset: 0;
+          background: #e85d26;
+          opacity: 0;
+        }
+      </style>
+
+      <div
+        id="stage"
+        data-composition-id="03-transmission"
+        data-width="1920"
+        data-height="1080"
+        data-duration="68.987"
+        data-fps="24"
+      >
+        <video id="g1-transmission-video-01" src="assets/public/island-06.mp4" muted playsinline data-start="0" data-duration="3.946" data-media-start="0.20" data-track-index="0"></video>
+        <video id="g1-transmission-video-02" src="assets/public/island-04.mp4" muted playsinline data-start="3.948" data-duration="3.922" data-media-start="1.10" data-track-index="0"></video>
+        <video id="g1-transmission-video-03" src="assets/public/island-05.mp4" muted playsinline data-start="7.872" data-duration="3.876" data-media-start="0.55" data-track-index="0"></video>
+        <video id="g1-transmission-video-04" src="assets/public/island-02.mp4" muted playsinline data-start="11.750" data-duration="3.922" data-media-start="1.65" data-track-index="0"></video>
+        <video id="g1-transmission-video-05" src="assets/public/island-03.mp4" muted playsinline data-start="15.674" data-duration="3.922" data-media-start="0.80" data-track-index="0"></video>
+        <video id="g1-transmission-video-06" src="assets/public/island-01.mp4" muted playsinline data-start="19.598" data-duration="3.922" data-media-start="1.35" data-track-index="0"></video>
+        <video id="g1-transmission-video-07" src="assets/public/island-06.mp4" muted playsinline data-start="23.522" data-duration="3.922" data-media-start="0.70" data-track-index="0"></video>
+        <video id="g1-transmission-video-08" src="assets/public/island-04.mp4" muted playsinline data-start="27.446" data-duration="3.899" data-media-start="1.90" data-track-index="0"></video>
+        <video id="g1-transmission-video-09" src="assets/public/island-05.mp4" muted playsinline data-start="31.347" data-duration="3.922" data-media-start="0.35" data-track-index="0"></video>
+        <video id="g1-transmission-video-10" src="assets/public/island-02.mp4" muted playsinline data-start="35.271" data-duration="3.899" data-media-start="1.45" data-track-index="0"></video>
+        <video id="g1-transmission-video-11" src="assets/public/island-03.mp4" muted playsinline data-start="39.172" data-duration="3.899" data-media-start="0.95" data-track-index="0"></video>
+        <video id="g1-transmission-video-12" src="assets/public/island-01.mp4" muted playsinline data-start="43.073" data-duration="3.899" data-media-start="1.75" data-track-index="0"></video>
+        <video id="g1-transmission-video-13" src="assets/public/island-06.mp4" muted playsinline data-start="46.974" data-duration="3.922" data-media-start="0.45" data-track-index="0"></video>
+        <video id="g1-transmission-video-14" src="assets/public/island-04.mp4" muted playsinline data-start="50.898" data-duration="3.899" data-media-start="1.25" data-track-index="0"></video>
+        <video id="g1-transmission-video-15" src="assets/public/island-05.mp4" muted playsinline data-start="54.799" data-duration="3.923" data-media-start="0.65" data-track-index="0"></video>
+        <video id="g1-transmission-video-16" src="assets/public/island-02.mp4" muted playsinline data-start="58.724" data-duration="3.899" data-media-start="1.80" data-track-index="0"></video>
+        <video id="g1-transmission-video-17" src="assets/public/island-03.mp4" muted playsinline data-start="62.625" data-duration="3.922" data-media-start="0.25" data-track-index="0"></video>
+        <video id="g1-transmission-video-18" src="assets/public/island-01.mp4" muted playsinline data-start="66.549" data-duration="1.946" data-media-start="1.05" data-track-index="0"></video>
+        <video id="g1-transmission-video-19" src="assets/public/island-06.mp4" muted playsinline data-start="68.499" data-duration="0.488" data-media-start="2.10" data-track-index="0"></video>
+
+        <div id="g1-transmission-field">
+          <div class="g1-grid"></div>
+          <div class="g1-chrome"></div>
+          <div class="g1-topline"><span>PIX-7 / NEKO NETWORK</span><b>TRANSMISSION 03</b></div>
+          <div class="g1-bottomline"><span>PACKET ASSEMBLY / COASTAL ROUTE</span><b>CITY STATE // LIVE</b></div>
+          <div class="g1-route">
+            <i class="r1"></i><i class="r2"></i><i class="r3"></i><i class="r4"></i>
+          </div>
+          <div id="g1-transmission-particles" class="g1-particles"></div>
+          <div id="g1-transmission-packet" class="g1-packet">
+            <div class="g1-packet-copy"><strong>07</strong><span>PACKET ASSEMBLY</span></div>
+          </div>
+          <div class="g1-pulses">
+            <i id="g1-transmission-pulse-a"></i>
+            <i id="g1-transmission-pulse-b"></i>
+            <i id="g1-transmission-pulse-c"></i>
+          </div>
+          <div id="g1-transmission-broadcast" class="g1-broadcast">
+            <header><span>NEKO CITY // EMERGENCY NETWORK</span><b>LIVE 07</b></header>
+            <main>
+              <small>DISTRICT SIGNAL / CITY STATE LIVE</small>
+              <strong>neko broadcast</strong>
+              <div class="g1-bars">
+                <i style="--h:28%"></i><i style="--h:62%"></i><i style="--h:42%"></i><i style="--h:88%"></i>
+                <i style="--h:51%"></i><i style="--h:73%"></i><i style="--h:34%"></i><i style="--h:96%"></i>
+                <i style="--h:58%"></i><i style="--h:79%"></i><i style="--h:46%"></i><i style="--h:67%"></i>
+              </div>
+            </main>
+            <footer><b>▲ PATROL CHANNEL OPEN</b><span>TRANSMISSION 611763979 / NIGHT RAIL NOMINAL / ARCHIVE LINK STABLE</span></footer>
+          </div>
+          <div id="g1-transmission-trails" class="g1-trails">
+            <i style="--y:17%;--w:21%"></i><i style="--y:24%;--w:13%"></i>
+            <i style="--y:36%;--w:28%"></i><i style="--y:44%;--w:19%"></i>
+            <i style="--y:61%;--w:25%"></i><i style="--y:69%;--w:16%"></i>
+            <i style="--y:81%;--w:31%"></i><i style="--y:88%;--w:12%"></i>
+          </div>
+          <div id="g1-transmission-flash" class="g1-flash"></div>
+        </div>
+      </div>
+
+      <script>
+        window.__timelines = window.__timelines || {};
+
+        const g1ParticleField = document.getElementById("g1-transmission-particles");
+        for (let i = 0; i < 72; i += 1) {
+          const particle = document.createElement("i");
+          const angle = (i / 72) * Math.PI * 2;
+          const radius = 31 + ((i * 29) % 29);
+          particle.style.setProperty("--x", `${50 + Math.cos(angle) * radius}%`);
+          particle.style.setProperty("--y", `${53 + Math.sin(angle) * radius * 0.56}%`);
+          particle.style.setProperty("--s", `${2 + (i % 3)}px`);
+          g1ParticleField.appendChild(particle);
+        }
+
+        const tl = gsap.timeline({ paused: true });
+        const g1Anchors = [
+          0, 3.948, 7.872, 11.75, 15.674, 19.598, 23.522, 27.446, 31.347,
+          35.271, 39.172, 43.073, 46.974, 50.898, 54.799, 58.724, 62.625, 66.549, 68.499
+        ];
+        const g1Particles = "#g1-transmission-particles i";
+
+        tl.set("#g1-transmission-field", { autoAlpha: 1 }, 0);
+        tl.fromTo(".g1-grid", { opacity: 0.08 }, { opacity: 0.28, duration: 7.872, ease: "none" }, 0);
+        tl.fromTo(".g1-chrome", { opacity: 0.25 }, { opacity: 0.92, duration: 3.948, ease: "power2.out" }, 0);
+        tl.fromTo(".g1-route i", { scaleX: 0, opacity: 0 }, { scaleX: 1, opacity: 0.72, duration: 1.2, stagger: 0.11, ease: "power2.out" }, 3.948);
+
+        g1Anchors.forEach((anchor, index) => {
+          const pulse = ["#g1-transmission-pulse-a", "#g1-transmission-pulse-b", "#g1-transmission-pulse-c"][index % 3];
+          tl.fromTo(pulse,
+            { scale: 0.34, opacity: 0.85 },
+            { scale: 2.7, opacity: 0, duration: 1.24, ease: "power2.out" },
+            anchor
+          );
+          tl.fromTo(g1Particles,
+            {
+              x: (particleIndex) => `${Math.cos((particleIndex / 72) * Math.PI * 2) * (120 + (particleIndex % 7) * 13)}px`,
+              y: (particleIndex) => `${Math.sin((particleIndex / 72) * Math.PI * 2) * (68 + (particleIndex % 5) * 9)}px`,
+              opacity: 0.16,
+              scale: 0.45
+            },
+            { x: 0, y: 0, opacity: 0.88, scale: 1.2, duration: 0.72, stagger: 0.002, ease: "power3.in" },
+            anchor
+          );
+          tl.to(g1Particles, { opacity: 0.16, scale: 0.65, duration: 0.42, ease: "power2.out" }, anchor + 0.74);
+        });
+
+        [7.872, 19.598, 31.347, 43.073, 54.799, 62.625].forEach((anchor) => {
+          tl.fromTo("#g1-transmission-packet",
+            { autoAlpha: 0, scale: 0.58, rotate: -8 },
+            { autoAlpha: 0.94, scale: 1, rotate: 0, duration: 0.46, ease: "back.out(1.8)" },
+            anchor
+          );
+          tl.to("#g1-transmission-packet", { autoAlpha: 0, scale: 1.13, duration: 0.48, ease: "power2.in" }, anchor + 1.16);
+        });
+
+        [15.674, 27.446, 46.974, 58.724, 66.549].forEach((anchor, index) => {
+          tl.fromTo("#g1-transmission-trails",
+            { autoAlpha: 0, x: index % 2 === 0 ? -90 : 90 },
+            { autoAlpha: 0.9, x: 0, duration: 0.2, ease: "power3.out" },
+            anchor
+          );
+          tl.to("#g1-transmission-trails", { autoAlpha: 0, x: index % 2 === 0 ? 140 : -140, duration: 0.5, ease: "power2.in" }, anchor + 0.5);
+        });
+
+        tl.fromTo("#g1-transmission-broadcast",
+          { autoAlpha: 0, scale: 0.985 },
+          { autoAlpha: 1, scale: 1, duration: 0.12, ease: "none" },
+          23.522
+        );
+        tl.fromTo(".g1-broadcast main strong", { x: -36 }, { x: 0, duration: 0.7, ease: "power3.out" }, 23.522);
+        tl.fromTo(".g1-bars i", { scaleY: 0.15, transformOrigin: "50% 100%" }, { scaleY: 1, duration: 0.42, stagger: 0.025, ease: "power2.out" }, 23.66);
+        tl.to("#g1-transmission-broadcast", { autoAlpha: 0, duration: 0.08, ease: "none" }, 27.19);
+
+        [35.271, 50.898, 68.499].forEach((anchor) => {
+          tl.fromTo("#g1-transmission-flash", { opacity: 0.52 }, { opacity: 0, duration: 0.16, ease: "none" }, anchor);
+        });
+
+        tl.to(".g1-grid", { opacity: 0.42, duration: 8, ease: "none" }, 54.799);
+        tl.set("#g1-transmission-field", { autoAlpha: 0 }, 68.987);
+        tl.seek(0);
+        window.__timelines["03-transmission"] = tl;
+      </script>
+    </template>
+  </body>
+</html>

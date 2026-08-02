@@ -1,0 +1,395 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Salt on the Wire — Acquisition</title>
+  </head>
+  <body>
+    <template>
+      <style>
+        .acq-video {
+          position: absolute;
+          inset: 0;
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          background: #111111;
+          opacity: 1;
+          z-index: 0;
+        }
+
+        .acq-grade {
+          position: absolute;
+          inset: 0;
+          z-index: 1;
+          pointer-events: none;
+          background: rgba(17, 17, 17, 0.16);
+          box-shadow: inset 0 0 180px rgba(17, 17, 17, 0.42);
+        }
+
+        .acq-grid {
+          position: absolute;
+          inset: 0;
+          z-index: 2;
+          pointer-events: none;
+          opacity: 0;
+          background-image:
+            linear-gradient(rgba(232, 93, 38, 0.17) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(232, 93, 38, 0.17) 1px, transparent 1px),
+            linear-gradient(rgba(240, 236, 229, 0.055) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(240, 236, 229, 0.055) 1px, transparent 1px);
+          background-size: 120px 120px, 120px 120px, 24px 24px, 24px 24px;
+        }
+
+        .acq-grid::after {
+          content: "";
+          position: absolute;
+          left: 0;
+          right: 0;
+          top: 0;
+          height: 2px;
+          background: #e85d26;
+          opacity: 0.72;
+        }
+
+        .acq-ui {
+          position: absolute;
+          inset: 0;
+          z-index: 3;
+          color: #f0ece5;
+          font-family: "IBM Plex Mono", "JetBrains Mono", monospace;
+          pointer-events: none;
+          opacity: 1;
+        }
+
+        .acq-top,
+        .acq-bottom {
+          position: absolute;
+          left: 106px;
+          right: 106px;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          height: 42px;
+          border-color: rgba(240, 236, 229, 0.22);
+          color: #96968e;
+          font-size: 14px;
+          font-weight: 500;
+          letter-spacing: 0.14em;
+          text-transform: uppercase;
+        }
+
+        .acq-top {
+          top: 36px;
+          border-bottom: 1px solid rgba(240, 236, 229, 0.22);
+        }
+
+        .acq-bottom {
+          bottom: 36px;
+          border-top: 1px solid rgba(240, 236, 229, 0.22);
+        }
+
+        .acq-top strong,
+        .acq-bottom strong {
+          color: #e85d26;
+          font-weight: 500;
+        }
+
+        .acq-divider {
+          position: absolute;
+          left: 106px;
+          right: 106px;
+          bottom: 114px;
+          height: 1px;
+          background: rgba(240, 236, 229, 0.22);
+          opacity: 0;
+        }
+
+        .acq-divider::before,
+        .acq-divider::after {
+          content: "";
+          position: absolute;
+          top: -3px;
+          width: 7px;
+          height: 7px;
+          background: #e85d26;
+        }
+
+        .acq-divider::before { left: 0; }
+        .acq-divider::after { right: 0; }
+
+        .acq-bracket {
+          position: absolute;
+          width: 88px;
+          height: 88px;
+          border-color: #e85d26;
+          border-style: solid;
+          opacity: 0;
+        }
+
+        .acq-bracket-a {
+          left: 106px;
+          top: 106px;
+          border-width: 2px 0 0 2px;
+        }
+
+        .acq-bracket-b {
+          right: 106px;
+          top: 106px;
+          border-width: 2px 2px 0 0;
+        }
+
+        .acq-bracket-c {
+          right: 106px;
+          bottom: 106px;
+          border-width: 0 2px 2px 0;
+        }
+
+        .acq-bracket-d {
+          left: 106px;
+          bottom: 106px;
+          border-width: 0 0 2px 2px;
+        }
+
+        .acq-reticle {
+          position: absolute;
+          left: 50%;
+          top: 49%;
+          width: 430px;
+          height: 430px;
+          transform: translate(-50%, -50%);
+          opacity: 0;
+        }
+
+        .acq-reticle-ring,
+        .acq-reticle-core,
+        .acq-reticle-axis {
+          position: absolute;
+          left: 50%;
+          top: 50%;
+          transform: translate(-50%, -50%);
+        }
+
+        .acq-reticle-ring {
+          width: 100%;
+          height: 100%;
+          border: 1px dashed rgba(232, 93, 38, 0.72);
+          border-radius: 50%;
+        }
+
+        .acq-reticle-ring::before,
+        .acq-reticle-ring::after {
+          content: "";
+          position: absolute;
+          border: 1px solid rgba(232, 93, 38, 0.5);
+          border-radius: 50%;
+        }
+
+        .acq-reticle-ring::before { inset: 58px; }
+        .acq-reticle-ring::after { inset: 154px; background: rgba(232, 93, 38, 0.055); }
+
+        .acq-reticle-core {
+          width: 18px;
+          height: 18px;
+          background: #e85d26;
+          transform: translate(-50%, -50%) rotate(45deg);
+        }
+
+        .acq-reticle-axis {
+          width: 520px;
+          height: 520px;
+        }
+
+        .acq-reticle-axis::before,
+        .acq-reticle-axis::after {
+          content: "";
+          position: absolute;
+          left: 50%;
+          top: 50%;
+          background: rgba(232, 93, 38, 0.45);
+          transform: translate(-50%, -50%);
+        }
+
+        .acq-reticle-axis::before { width: 100%; height: 1px; }
+        .acq-reticle-axis::after { width: 1px; height: 100%; }
+
+        .acq-reticle-label {
+          position: absolute;
+          left: 50%;
+          top: calc(50% + 250px);
+          transform: translateX(-50%);
+          color: #f08c63;
+          font-size: 15px;
+          letter-spacing: 0.16em;
+          white-space: nowrap;
+        }
+
+        .acq-reticle-label small {
+          display: block;
+          margin-top: 9px;
+          color: #b8b8b3;
+          font-size: 12px;
+          text-align: center;
+        }
+
+        .acq-readout {
+          position: absolute;
+          left: 106px;
+          bottom: 138px;
+          max-width: 650px;
+          opacity: 0;
+        }
+
+        .acq-readout .acq-rule {
+          display: block;
+          width: 36px;
+          height: 2px;
+          margin-bottom: 15px;
+          background: #e85d26;
+        }
+
+        .acq-readout .acq-kicker {
+          display: block;
+          margin-bottom: 18px;
+          color: #ee865c;
+          font-size: 14px;
+          font-weight: 500;
+          letter-spacing: 0.14em;
+          text-transform: uppercase;
+        }
+
+        .acq-readout h1 {
+          margin: 0;
+          color: #f0ece5;
+          font-family: Inter, sans-serif;
+          font-size: 82px;
+          font-weight: 900;
+          line-height: 0.92;
+          letter-spacing: -0.04em;
+          text-transform: lowercase;
+        }
+
+        .acq-side-data {
+          position: absolute;
+          right: 106px;
+          bottom: 138px;
+          width: 290px;
+          display: grid;
+          grid-template-columns: 1fr auto;
+          gap: 9px 24px;
+          padding-top: 14px;
+          border-top: 1px solid rgba(240, 236, 229, 0.22);
+          color: #888880;
+          font-size: 12px;
+          letter-spacing: 0.14em;
+          text-transform: uppercase;
+          opacity: 0;
+        }
+
+        .acq-side-data b {
+          color: #ee865c;
+          font-weight: 500;
+        }
+      </style>
+
+      <div
+        id="stage"
+        data-composition-id="01-acquisition"
+        data-width="1920"
+        data-height="1080"
+        data-duration="70.937"
+        data-fps="24"
+        style="position:absolute;inset:0;width:1920px;height:1080px;overflow:hidden;background:#111111;container-type:size;"
+      >
+        <video id="acq-v01" class="clip acq-video" src="assets/public/island-01.mp4" data-start="0" data-duration="8.29" data-track-index="0" data-media-start="0.441" muted playsinline loop></video>
+        <video id="acq-v02" class="clip acq-video" src="assets/public/island-02.mp4" data-start="8.29" data-duration="7.848" data-track-index="0" data-media-start="2.249" muted playsinline loop></video>
+        <video id="acq-v03" class="clip acq-video" src="assets/public/island-03.mp4" data-start="16.138" data-duration="7.825" data-track-index="0" data-media-start="4.098" muted playsinline loop></video>
+        <video id="acq-v04" class="clip acq-video" src="assets/public/island-04.mp4" data-start="23.963" data-duration="7.848" data-track-index="0" data-media-start="0.923" muted playsinline loop></video>
+        <video id="acq-v05" class="clip acq-video" src="assets/public/island-05.mp4" data-start="31.811" data-duration="7.825" data-track-index="0" data-media-start="2.771" muted playsinline loop></video>
+        <video id="acq-v06" class="clip acq-video" src="assets/public/island-06.mp4" data-start="39.636" data-duration="7.826" data-track-index="0" data-media-start="4.596" muted playsinline loop></video>
+        <video id="acq-v07" class="clip acq-video" src="assets/public/island-03.mp4" data-start="47.462" data-duration="7.825" data-track-index="0" data-media-start="1.422" muted playsinline loop></video>
+        <video id="acq-v08" class="clip acq-video" src="assets/public/island-05.mp4" data-start="55.287" data-duration="7.825" data-track-index="0" data-media-start="3.247" muted playsinline loop></video>
+        <video id="acq-v09" class="clip acq-video" src="assets/public/island-02.mp4" data-start="63.112" data-duration="5.874" data-track-index="0" data-media-start="5.071" muted playsinline loop></video>
+        <video id="acq-v10" class="clip acq-video" src="assets/public/island-06.mp4" data-start="68.986" data-duration="1.951" data-track-index="0" data-media-start="2.906" muted playsinline loop></video>
+
+        <div class="acq-grade"></div>
+        <div id="acq-grid" class="acq-grid" data-layout-allow-overflow></div>
+
+        <div id="g1-acq-ui" class="acq-ui">
+          <div class="acq-top">
+            <span>PIX-7 // SALT LINE</span>
+            <span>ACQUISITION BUS <strong>ONLINE</strong></span>
+          </div>
+
+          <div class="acq-bottom">
+            <span>NEKO CITY / DISTRICT 07</span>
+            <span><strong>123 BPM</strong> · FRAME 01 · PATROL HUD</span>
+          </div>
+
+          <div id="acq-divider" class="acq-divider"></div>
+          <i id="acq-bracket-a" class="acq-bracket acq-bracket-a"></i>
+          <i id="acq-bracket-b" class="acq-bracket acq-bracket-b"></i>
+          <i id="acq-bracket-c" class="acq-bracket acq-bracket-c"></i>
+          <i id="acq-bracket-d" class="acq-bracket acq-bracket-d"></i>
+
+          <div id="acq-reticle" class="acq-reticle">
+            <div id="acq-reticle-ring" class="acq-reticle-ring"></div>
+            <div class="acq-reticle-axis"></div>
+            <div class="acq-reticle-core"></div>
+            <div class="acq-reticle-label">
+              <span id="acq-lock-copy">ACQUIRING NEKO CITY</span>
+              <small>X 071.248 · Y 611.763</small>
+            </div>
+          </div>
+
+          <div id="acq-readout" class="acq-readout">
+            <span class="acq-rule"></span>
+            <span class="acq-kicker">Patrol HUD 01 / target acquired</span>
+            <h1>salt on the wire</h1>
+          </div>
+
+          <div id="acq-side-data" class="acq-side-data">
+            <span>city lock</span><b>98.4%</b>
+            <span>packet loss</span><b>0.7%</b>
+            <span>night rail</span><b>nominal</b>
+          </div>
+        </div>
+      </div>
+
+      <script>
+        window.__timelines = window.__timelines || {};
+        const tl = gsap.timeline({ paused: true });
+        const cutAnchors = [8.29, 16.138, 23.963, 31.811, 39.636, 47.462, 55.287, 63.112, 68.986];
+        const videos = ["#acq-v01", "#acq-v02", "#acq-v03", "#acq-v04", "#acq-v05", "#acq-v06", "#acq-v07", "#acq-v08", "#acq-v09", "#acq-v10"];
+
+        tl.set("#g1-acq-ui", { autoAlpha: 1 }, 0);
+        tl.set("#g1-acq-ui", { autoAlpha: 0 }, 70.937);
+        tl.fromTo(".acq-top, .acq-bottom", { opacity: 0 }, { opacity: 1, duration: 1.1, ease: "power2.out" }, 0.441);
+        tl.fromTo("#acq-grid", { opacity: 0 }, { opacity: 0.2, duration: 1.4, ease: "power2.out" }, 8.29);
+        tl.fromTo("#acq-bracket-a, #acq-bracket-b, #acq-bracket-c, #acq-bracket-d", { opacity: 0, scale: 1.12 }, { opacity: 0.9, scale: 1, duration: 0.32, ease: "power3.out" }, 16.138);
+        tl.fromTo("#acq-divider", { opacity: 0, scaleX: 0.08 }, { opacity: 1, scaleX: 1, duration: 0.55, ease: "power2.out" }, 23.963);
+        tl.fromTo("#acq-reticle", { opacity: 0, scale: 1.12 }, { opacity: 0.86, scale: 1, duration: 0.5, ease: "power3.out" }, 31.811);
+        tl.fromTo("#acq-reticle-ring", { rotation: 0 }, { rotation: 176, duration: 39.126, ease: "none" }, 31.811);
+        tl.fromTo("#acq-side-data", { opacity: 0, x: 20 }, { opacity: 1, x: 0, duration: 0.45, ease: "power2.out" }, 39.636);
+        tl.set("#acq-lock-copy", { textContent: "PX-7 / TARGET ACQUIRED" }, 55.287);
+        tl.fromTo("#acq-readout", { opacity: 0, y: 24 }, { opacity: 1, y: 0, duration: 0.6, ease: "power3.out" }, 63.112);
+        tl.to("#acq-grid", { opacity: 0.32, duration: 0.3, ease: "power2.out" }, 68.986);
+        tl.to("#acq-reticle", { opacity: 1, scale: 1.035, duration: 0.24, ease: "power2.out" }, 68.986);
+
+        cutAnchors.forEach((anchor, index) => {
+          const outgoing = videos[index];
+          tl.to(outgoing, { opacity: 0, duration: 0.16, ease: "power1.in" }, anchor - 0.16);
+          tl.set(outgoing, { opacity: 0 }, anchor);
+        });
+
+        [8.29, 16.138, 23.963, 31.811, 39.636, 47.462, 55.287, 63.112].forEach((anchor) => {
+          tl.set("#acq-grid", { y: 0 }, anchor);
+          tl.to("#acq-grid", { y: 1080, duration: 7.5, ease: "none" }, anchor);
+        });
+
+        window.__timelines["01-acquisition"] = tl;
+        tl.seek(0);
+      </script>
+    </template>
+  </body>
+</html>

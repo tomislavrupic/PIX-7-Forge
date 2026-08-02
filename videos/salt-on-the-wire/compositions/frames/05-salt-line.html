@@ -1,0 +1,421 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>PIX-7 — Salt Line</title>
+  </head>
+  <body>
+    <template>
+      <style>
+        #stage {
+          position: relative;
+          width: 1920px;
+          height: 1080px;
+          overflow: hidden;
+          container-type: size;
+          color: #f0ece5;
+          font-family: Inter, sans-serif;
+        }
+
+        #stage video {
+          position: absolute;
+          inset: 0;
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          background: #111111;
+        }
+
+        #f5-island-01,
+        #f5-island-05 {
+          transform: scale(1.035);
+        }
+
+        #f5-island-03,
+        #f5-island-07 {
+          transform: scale(1.075) translateX(-0.8%);
+        }
+
+        #f5-island-04,
+        #f5-island-08 {
+          transform: scale(1.055) translateX(0.9%);
+        }
+
+        .f5-overlay {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          pointer-events: none;
+        }
+
+        .f5-shade {
+          position: absolute;
+          inset: 0;
+          background: rgba(17, 17, 17, 0.18);
+        }
+
+        .f5-grid {
+          position: absolute;
+          inset: 0;
+          opacity: 0.16;
+          background-size: 96px 96px;
+          background-image:
+            linear-gradient(#e85d26 1px, transparent 1px),
+            linear-gradient(90deg, #e85d26 1px, transparent 1px);
+        }
+
+        .f5-chrome {
+          position: absolute;
+          left: 5.5cqw;
+          right: 5.5cqw;
+          top: 5.5cqh;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding-top: 14px;
+          border-top: 1px solid rgba(240, 236, 229, 0.45);
+          color: #f0ece5;
+          font-family: "IBM Plex Mono", "JetBrains Mono", monospace;
+          font-size: 0.72cqw;
+          font-weight: 500;
+          letter-spacing: 0.14em;
+          text-transform: uppercase;
+        }
+
+        .f5-chrome b {
+          color: #e85d26;
+          font: inherit;
+        }
+
+        .f5-route {
+          position: absolute;
+          height: 1px;
+          background: #e85d26;
+          transform-origin: left center;
+        }
+
+        .f5-route-a {
+          left: 8cqw;
+          top: 29cqh;
+          width: 27cqw;
+        }
+
+        .f5-route-b {
+          right: 8cqw;
+          top: 68cqh;
+          width: 31cqw;
+          transform-origin: right center;
+        }
+
+        .f5-route-c {
+          left: 24cqw;
+          top: 29cqh;
+          width: 1px;
+          height: 25cqh;
+          transform-origin: center top;
+        }
+
+        .f5-route::before,
+        .f5-route::after {
+          content: "";
+          position: absolute;
+          top: -3px;
+          width: 7px;
+          height: 7px;
+          background: #e85d26;
+        }
+
+        .f5-route::before { left: 0; }
+        .f5-route::after { right: 0; }
+
+        .f5-packets {
+          position: absolute;
+          inset: 0;
+        }
+
+        .f5-packets i {
+          position: absolute;
+          display: block;
+          width: 7px;
+          height: 7px;
+          background: #e85d26;
+        }
+
+        .f5-packets i:nth-child(1) { left: 9%; top: 24%; }
+        .f5-packets i:nth-child(2) { left: 16%; top: 34%; }
+        .f5-packets i:nth-child(3) { left: 26%; top: 23%; }
+        .f5-packets i:nth-child(4) { left: 35%; top: 42%; }
+        .f5-packets i:nth-child(5) { left: 62%; top: 31%; }
+        .f5-packets i:nth-child(6) { left: 72%; top: 58%; }
+        .f5-packets i:nth-child(7) { left: 84%; top: 66%; }
+        .f5-packets i:nth-child(8) { left: 91%; top: 49%; }
+
+        .f5-reticle {
+          position: absolute;
+          left: 50%;
+          top: 50%;
+          width: 20cqw;
+          height: 20cqw;
+          transform: translate(-50%, -50%);
+        }
+
+        .f5-reticle-ring {
+          position: absolute;
+          inset: 0;
+          border: 1px solid #e85d26;
+          border-radius: 50%;
+        }
+
+        .f5-reticle-ring::before,
+        .f5-reticle-ring::after {
+          content: "";
+          position: absolute;
+          left: 50%;
+          top: 50%;
+          display: block;
+          transform: translate(-50%, -50%);
+          border: 1px solid #e85d26;
+          border-radius: 50%;
+        }
+
+        .f5-reticle-ring::before {
+          width: 64%;
+          height: 64%;
+          opacity: 0.7;
+        }
+
+        .f5-reticle-ring::after {
+          width: 12%;
+          height: 12%;
+          background: #e85d26;
+        }
+
+        .f5-reticle-h,
+        .f5-reticle-v {
+          position: absolute;
+          left: 50%;
+          top: 50%;
+          display: block;
+          background: #e85d26;
+          transform: translate(-50%, -50%);
+        }
+
+        .f5-reticle-h { width: 132%; height: 1px; }
+        .f5-reticle-v { width: 1px; height: 132%; }
+
+        .f5-lock {
+          position: absolute;
+          left: calc(50% + 11.8cqw);
+          top: calc(50% + 8.5cqw);
+          color: #e85d26;
+          font-family: "IBM Plex Mono", "JetBrains Mono", monospace;
+          font-size: 0.72cqw;
+          font-weight: 500;
+          letter-spacing: 0.14em;
+          text-transform: uppercase;
+        }
+
+        .f5-data {
+          position: absolute;
+          left: 5.5cqw;
+          bottom: 5.5cqh;
+          width: 38cqw;
+          padding-top: 16px;
+          border-top: 1px solid #e85d26;
+          font-family: "IBM Plex Mono", "JetBrains Mono", monospace;
+          text-transform: uppercase;
+        }
+
+        .f5-data strong {
+          display: block;
+          color: #f0ece5;
+          font-size: 1.35cqw;
+          font-weight: 500;
+          letter-spacing: 0.08em;
+        }
+
+        .f5-data span {
+          display: block;
+          margin-top: 10px;
+          color: #e85d26;
+          font-size: 0.72cqw;
+          letter-spacing: 0.14em;
+        }
+
+        .f5-resolve {
+          position: absolute;
+          inset: 0;
+          opacity: 0;
+        }
+
+        .f5-resolve-wash {
+          position: absolute;
+          inset: 0;
+          background: rgba(17, 17, 17, 0.13);
+        }
+
+        .f5-resolve-copy {
+          position: absolute;
+          left: 5.5cqw;
+          right: 5.5cqw;
+          bottom: 6.5cqh;
+          display: grid;
+          grid-template-columns: 1fr auto;
+          align-items: end;
+          padding-top: 22px;
+          border-top: 1px solid #e85d26;
+        }
+
+        .f5-wordmark {
+          display: block;
+          color: #f0ece5;
+          font-size: 8.5cqw;
+          font-weight: 900;
+          line-height: 0.8;
+          letter-spacing: -0.055em;
+        }
+
+        .f5-online {
+          display: block;
+          padding-bottom: 7px;
+          color: #e85d26;
+          font-family: "IBM Plex Mono", "JetBrains Mono", monospace;
+          font-size: 0.9cqw;
+          font-weight: 500;
+          letter-spacing: 0.14em;
+          text-transform: uppercase;
+        }
+
+        .f5-black {
+          position: absolute;
+          inset: 0;
+          background: #111111;
+          opacity: 0;
+        }
+      </style>
+
+      <div
+        id="stage"
+        data-composition-id="05-salt-line"
+        data-width="1920"
+        data-height="1080"
+        data-duration="20.509"
+        data-fps="24"
+      >
+        <video id="f5-island-01" muted playsinline preload="auto" src="assets/public/island-05.mp4" data-start="0" data-duration="1.951" data-media-start="0.2" data-track-index="0"></video>
+        <video id="f5-island-02" muted playsinline preload="auto" src="assets/public/island-06.mp4" data-start="1.951" data-duration="1.95" data-media-start="1.1" data-track-index="0"></video>
+        <video id="f5-island-03" muted playsinline preload="auto" src="assets/public/island-03.mp4" data-start="3.901" data-duration="1.951" data-media-start="2.2" data-track-index="0"></video>
+        <video id="f5-island-04" muted playsinline preload="auto" src="assets/public/island-01.mp4" data-start="5.852" data-duration="1.95" data-media-start="3.25" data-track-index="0"></video>
+        <video id="f5-island-05" muted playsinline preload="auto" src="assets/public/island-05.mp4" data-start="7.802" data-duration="1.951" data-media-start="1.5" data-track-index="0"></video>
+        <video id="f5-island-06" muted playsinline preload="auto" src="assets/public/island-06.mp4" data-start="9.753" data-duration="1.95" data-media-start="2.7" data-track-index="0"></video>
+        <video id="f5-island-07" muted playsinline preload="auto" src="assets/public/island-03.mp4" data-start="11.703" data-duration="1.951" data-media-start="0.55" data-track-index="0"></video>
+        <video id="f5-island-08" muted playsinline preload="auto" src="assets/public/island-01.mp4" data-start="13.654" data-duration="1.927" data-media-start="1.8" data-track-index="0"></video>
+        <video id="f5-island-09" muted playsinline preload="auto" src="assets/public/island-05.mp4" data-start="15.581" data-duration="1.95" data-media-start="3.6" data-track-index="0"></video>
+        <video id="f5-island-10" muted playsinline preload="auto" src="assets/public/island-06.mp4" data-start="17.531" data-duration="2.978" data-media-start="1.85" data-track-index="0"></video>
+
+        <div id="f5-g1" class="clip f5-overlay" data-start="0" data-duration="20.509" data-track-index="1">
+          <div id="f5-busy">
+            <div class="f5-shade"></div>
+            <div class="f5-grid"></div>
+            <div class="f5-chrome">
+              <span>PIX-7 // PACKET ROUTING</span>
+              <b>SECTOR 07 / LIVE</b>
+            </div>
+            <div class="f5-route f5-route-a"></div>
+            <div class="f5-route f5-route-b"></div>
+            <div class="f5-route f5-route-c"></div>
+            <div class="f5-packets">
+              <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+            </div>
+            <div class="f5-reticle">
+              <div class="f5-reticle-ring"></div>
+              <i class="f5-reticle-h"></i>
+              <i class="f5-reticle-v"></i>
+            </div>
+            <div class="f5-lock">TARGET LOCK // CONFIRMED</div>
+            <div class="f5-data">
+              <strong>SALT LINE RESTORED</strong>
+              <span>PACKET 07 · COASTAL NODE · 98.4%</span>
+            </div>
+          </div>
+
+          <div id="f5-resolve" class="f5-resolve">
+            <div class="f5-resolve-wash"></div>
+            <div class="f5-resolve-copy">
+              <strong class="f5-wordmark">PIX-7</strong>
+              <span class="f5-online">NEKO CITY // ONLINE</span>
+            </div>
+          </div>
+
+          <div id="f5-black" class="f5-black"></div>
+        </div>
+      </div>
+
+      <script>
+        window.__timelines = window.__timelines || {};
+        const tl = gsap.timeline({ paused: true });
+
+        tl.set("#f5-g1", { autoAlpha: 1 }, 0);
+        tl.set("#f5-busy", { autoAlpha: 1 }, 0);
+        tl.set("#f5-resolve", { autoAlpha: 0 }, 0);
+        tl.set("#f5-black", { autoAlpha: 0 }, 0);
+
+        tl.fromTo(".f5-grid", { opacity: 0.04 }, { opacity: 0.16, duration: 1.951, ease: "power2.out" }, 0);
+        tl.fromTo(".f5-chrome", { y: -22, opacity: 0 }, { y: 0, opacity: 1, duration: 0.48, ease: "power3.out" }, 0.18);
+        tl.fromTo(".f5-route-a", { scaleX: 0 }, { scaleX: 1, duration: 1.18, ease: "power2.inOut" }, 0.42);
+        tl.fromTo(".f5-route-c", { scaleY: 0 }, { scaleY: 1, duration: 0.95, ease: "power2.inOut" }, 1.28);
+        tl.fromTo(".f5-route-b", { scaleX: 0 }, { scaleX: 1, duration: 0.82, ease: "power3.inOut" }, 2.42);
+
+        tl.fromTo(".f5-packets i", { scale: 0, opacity: 0 }, {
+          scale: 1,
+          opacity: 1,
+          duration: 0.24,
+          stagger: 0.09,
+          ease: "power2.out"
+        }, 1.951);
+        tl.to(".f5-packets i", {
+          x: (index) => (index % 2 === 0 ? 1 : -1) * (80 + index * 19),
+          y: (index) => (index % 3 - 1) * (36 + index * 7),
+          duration: 1.56,
+          stagger: 0.055,
+          ease: "power2.inOut"
+        }, 3.901);
+        tl.to(".f5-packets i", {
+          x: (index) => (index - 3.5) * 34,
+          y: (index) => (index % 2 === 0 ? 1 : -1) * 92,
+          duration: 1.12,
+          stagger: 0.035,
+          ease: "power3.inOut"
+        }, 7.802);
+        tl.to(".f5-packets i", {
+          x: 0,
+          y: 0,
+          scale: 0.55,
+          duration: 0.72,
+          stagger: 0.025,
+          ease: "power4.in"
+        }, 13.654);
+
+        tl.fromTo(".f5-reticle", { scale: 1.42, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.82, ease: "power3.out" }, 5.852);
+        tl.to(".f5-reticle-ring", { rotation: 90, duration: 3.901, ease: "none" }, 7.802);
+        tl.fromTo(".f5-lock", { x: 18, opacity: 0 }, { x: 0, opacity: 1, duration: 0.32, ease: "power2.out" }, 9.753);
+        tl.to(".f5-reticle", { scale: 0.82, duration: 0.42, ease: "power3.inOut" }, 11.703);
+        tl.to(".f5-reticle", { scale: 1, duration: 0.28, ease: "power3.out" }, 12.123);
+        tl.to(".f5-grid", { opacity: 0.28, duration: 0.46, ease: "power2.in" }, 15.581);
+        tl.to(".f5-reticle-ring", { rotation: 180, duration: 1.95, ease: "power3.in" }, 15.581);
+
+        tl.set("#f5-busy", { autoAlpha: 0 }, 17.531);
+        tl.set("#f5-resolve", { autoAlpha: 1 }, 17.531);
+        tl.fromTo(".f5-resolve-copy", { y: 34, opacity: 0 }, { y: 0, opacity: 1, duration: 0.55, ease: "power3.out" }, 17.531);
+        tl.fromTo(".f5-wordmark", { scale: 1.06, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.62, ease: "power2.out" }, 17.531);
+        tl.fromTo(".f5-online", { x: 24, opacity: 0 }, { x: 0, opacity: 1, duration: 0.48, ease: "power2.out" }, 17.74);
+        tl.to("#f5-resolve", { autoAlpha: 0, duration: 0.72, ease: "power2.in" }, 19.72);
+        tl.to("#f5-black", { autoAlpha: 1, duration: 0.789, ease: "power2.in" }, 19.72);
+        tl.set("#f5-g1", { autoAlpha: 0 }, 20.509);
+
+        window.__timelines["05-salt-line"] = tl;
+        tl.seek(0);
+      </script>
+    </template>
+  </body>
+</html>
