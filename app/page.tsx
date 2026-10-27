@@ -611,7 +611,8 @@ export default function Home() {
           </section>
         </aside>
       </div>
-      <footer className="statusbar"><span><i /> CONSTRAINT ENGINE: ENFORCED</span><span>NO GLASS / NO GRADIENT / FUNCTION-FIRST</span><span>PIX–7 SYSTEMS © 2026</span><a className="pixel-records-home-link" href="https://tomislav-rupic.com/" style={{ display: "inline-flex", alignItems: "center", minHeight: 44, padding: "8px 12px", color: "inherit", textDecoration: "underline", textUnderlineOffset: 3, font: "inherit" }}>← tomislav-rupic.com</a></footer>
+      <footer className="statusbar"><span><i /> CONSTRAINT ENGINE: ENFORCED</span><span>NO GLASS / NO GRADIENT / FUNCTION-FIRST</span><span>PIX–7 SYSTEMS © 2026</span></footer>
+    <nav aria-label="Return to Pixel Records" style={{ display: "flex", justifyContent: "center", borderTop: "1px solid #2a302b" }}><a className="pixel-records-home-link" href="https://tomislav-rupic.com/" style={{ display: "inline-flex", alignItems: "center", minHeight: 44, padding: "8px 12px", color: "inherit", textDecoration: "underline", textUnderlineOffset: 3, font: "inherit" }}>← tomislav-rupic.com</a></nav>
     </main>
   );
 }
