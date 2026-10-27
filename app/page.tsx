@@ -153,7 +153,7 @@ function NekoEffectShape({ effect, recipe, common, style }: {
     return frame(<div className="hf-patrol"><div className="hf-scope"><i /><i /><i /><i /><b /></div><strong>PX–7 / TARGET ACQUIRED</strong><small>X 071.248 · Y 611.763</small></div>);
   }
   if (effect.mode === "neko-broadcast") {
-    return frame(<div className="hf-broadcast"><header><span>NEKO CITY // LIVE</span><b>07</b></header><main><small>DISTRICT SIGNAL</small><strong>RESTORED</strong></main><footer><span>▲ PATROL CHANNEL OPEN</span><i /></footer></div>);
+    return frame(<div className="hf-broadcast"><header><span>NEKO CITY // LIVE</span><b>07</b></header><main><small>DISTRICT SIGNAL</small><strong>RESTORED</strong></main><footer><span>▲ PATROL CHANNEL OPEN</span><i /><a className="pixel-records-home-link" href="https://tomislav-rupic.com/" style={{ display: "inline-flex", alignItems: "center", minHeight: 44, padding: "8px 12px", color: "inherit", textDecoration: "underline", textUnderlineOffset: 3, font: "inherit" }}>← tomislav-rupic.com</a></footer></div>);
   }
   if (effect.mode === "packet-assembly") {
     return frame(<div className="hf-assembly"><div className="hf-packet-particles">{marks.map((_, index) => <i key={index} style={markStyle(index)} />)}</div><div className="hf-packet"><span>07</span><strong>MEMORY<br />PACKET</strong></div><small>ASSEMBLY 98.4%</small></div>);
